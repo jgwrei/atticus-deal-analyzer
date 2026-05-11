@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atticus Deal Analyzer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --border: #252a38;
+    --border2: #2e3547;
+    --text: #e8eaf0;
+    --text2: #8b92a8;
+    --text3: #555e75;
+    --accent: #c8a96e;
+    --accent2: #e6c98a;
+    --green: #4caf7d;
+    --green2: #2d7a52;
+    --red: #e05656;
+    --red2: #a33;
+    --yellow: #e8b84b;
+    --blue: #5b8def;
+    --purple: #9b72cf;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* AUTH */
+  #auth-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--bg);
+  }
+  .auth-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 48px;
+    width: 360px;
+    text-align: center;
+  }
+  .auth-box .logo {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .auth-box h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 32px;
+    color: var(--text);
+  }
+  .auth-box input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .auth-box input:focus { border-color: var(--accent); }
+  .auth-box button {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+  }
+  .auth-box button:hover { background: var(--accent2); }
+  #auth-err { color: var(--red); font-size: 12px; margin-top: 10px; min-height: 16px; }
+
+  /* APP */
+  #app { display: none; }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-brand {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-right: 32px;
+    white-space: nowrap;
+  }
+  .nav-tabs {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    overflow-x: auto;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    border: none;
+    background: transparent;
+    font-family: var(--font);
+  }
+  .nav-tab:hover { color: var(--text); background: var(--surface2); }
+  .nav-tab.active { color: var(--accent); background: rgba(200,169,110,0.1); }
+
+  /* MAIN CONTENT */
+  .content {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  /* GRID */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media(max-width:800px) { .grid2,.grid3,.grid4 { grid-template-columns:1fr; } }
+
+  /* FORM ELEMENTS */
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 7px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 80px; }
+  select { cursor: pointer; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 7px;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { opacity: 0.85; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-small { padding: 6px 12px; font-size: 12px; }
+
+  /* STAT BOXES */
+  .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+  @media(max-width:900px) { .stat-grid { grid-template-columns: repeat(2,1fr); } }
+  .stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text3); font-weight: 600; margin-bottom: 6px; }
+  .stat-val { font-size: 22px; font-weight: 700; color: var(--text); font-family: var(--mono); }
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+  .stat-val.yellow { color: var(--yellow); }
+  .stat-val.accent { color: var(--accent); }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* ARV CONFIDENCE BAND */
+  .arv-band {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+  }
+  .arv-band-title { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); font-weight: 600; margin-bottom: 10px; }
+  .arv-band-row { display: flex; align-items: center; gap: 10px; }
+  .arv-band-item { text-align: center; flex: 1; }
+  .arv-band-item .bl { font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+  .arv-band-item .bv { font-size: 18px; font-weight: 700; font-family: var(--mono); }
+  .arv-band-item.low .bv { color: var(--red); }
+  .arv-band-item.mid .bv { color: var(--accent); font-size: 22px; }
+  .arv-band-item.high .bv { color: var(--green); }
+  .arv-sep { width: 1px; height: 40px; background: var(--border2); }
+  .arv-bar { height: 4px; background: var(--border2); border-radius: 2px; margin-top: 12px; position: relative; overflow: visible; }
+  .arv-bar-fill { position: absolute; top: 0; left: 15%; right: 15%; height: 100%; background: linear-gradient(90deg, var(--red), var(--accent), var(--green)); border-radius: 2px; }
+  .arv-bar-mid { position: absolute; top: -4px; left: 50%; transform: translateX(-50%); width: 3px; height: 12px; background: var(--accent2); border-radius: 2px; }
+
+  /* DEAL SCORE */
+  .score-ring-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+  .score-ring { position: relative; width: 100px; height: 100px; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 28px; font-weight: 700; font-family: var(--mono); }
+  .score-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-top: 8px; }
+  .score-verdict { font-size: 13px; font-weight: 600; margin-top: 4px; }
+
+  /* SUB-TABS */
+  .subtab-bar { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+  .subtab {
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-family: var(--font);
+    letter-spacing: 0.03em;
+    transition: all 0.15s;
+  }
+  .subtab:hover { color: var(--text); }
+  .subtab.active { background: rgba(200,169,110,0.15); border-color: var(--accent); color: var(--accent); }
+  .subtab-panel { display: none; }
+  .subtab-panel.active { display: block; }
+
+  /* MOI TABLE */
+  .moi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .moi-table th { text-align: left; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .moi-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  .moi-table tr.active-moi td { color: var(--accent); background: rgba(200,169,110,0.06); }
+
+  /* COMP TABLE */
+  .comp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .comp-table th { font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text3); padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+  .comp-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); }
+  .comp-table input { background: transparent; border: none; border-bottom: 1px solid var(--border2); border-radius: 0; padding: 2px 4px; color: var(--text); font-family: var(--mono); font-size: 13px; }
+  .comp-table input:focus { border-bottom-color: var(--accent); outline: none; }
+  .del-row { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; }
+  .del-row:hover { color: var(--red); background: rgba(224,86,86,0.1); }
+
+  /* BADGE */
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .badge-green { background: rgba(76,175,125,0.15); color: var(--green); }
+  .badge-red { background: rgba(224,86,86,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(232,184,75,0.15); color: var(--yellow); }
+  .badge-accent { background: rgba(200,169,110,0.15); color: var(--accent); }
+  .badge-gray { background: var(--surface2); color: var(--text3); }
+
+  /* RECOMMENDATION BOX */
+  .rec-box {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 16px;
+    border-left: 3px solid;
+  }
+  .rec-box.green { background: rgba(76,175,125,0.08); border-color: var(--green); }
+  .rec-box.yellow { background: rgba(232,184,75,0.08); border-color: var(--yellow); }
+  .rec-box.red { background: rgba(224,86,86,0.08); border-color: var(--red); }
+  .rec-box-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .rec-box p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+  /* PIPELINE STACKER */
+  .pipeline-deal {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .pipeline-deal.top1 { border-color: var(--accent); }
+  .pipeline-deal.top2 { border-color: var(--green); }
+  .pipeline-deal.top3 { border-color: var(--blue); }
+  .pipeline-deal-header { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .stack-bars { display: flex; gap: 6px; margin-top: 8px; }
+  .stack-bar-item { flex: 1; }
+  .stack-bar-label { font-size: 9px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+  .stack-bar-bg { height: 4px; background: var(--border); border-radius: 2px; }
+  .stack-bar-fill { height: 4px; border-radius: 2px; background: var(--accent); transition: width 0.4s; }
+
+  /* AI SCRIPT PANEL */
+  .ai-panel {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+  .ai-panel pre {
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .ai-loading { display: flex; align-items: center; gap: 10px; color: var(--text2); font-size: 13px; }
+  .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s infinite; }
+  .ai-dot:nth-child(2) { animation-delay: 0.2s; }
+  .ai-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+  /* HISTORY */
+  .history-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .history-item:hover { border-color: var(--accent); }
+  .history-item-addr { font-size: 13px; font-weight: 600; color: var(--text); }
+  .history-item-meta { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  .history-item-score { font-size: 20px; font-weight: 700; font-family: var(--mono); }
+
+  /* REHAB */
+  .rehab-tier-bar { display: flex; border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+  .rehab-tier-seg { flex: 1; padding: 8px 4px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; border: none; font-family: var(--font); transition: opacity 0.15s; }
+  .rehab-tier-seg.active { opacity: 1; }
+  .rehab-tier-seg:not(.active) { opacity: 0.4; }
+  .t-cosmetic { background: var(--green); color: #fff; }
+  .t-light { background: #4caf9b; color: #fff; }
+  .t-medium { background: var(--yellow); color: #000; }
+  .t-heavy { background: #e08a46; color: #fff; }
+  .t-gut { background: var(--red); color: #fff; }
+
+  /* SETTINGS */
+  .settings-section-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* FLEX UTILS */
+  .flex { display: flex; }
+  .flex-col { display: flex; flex-direction: column; }
+  .gap8 { gap: 8px; }
+  .gap12 { gap: 12px; }
+  .gap16 { gap: 16px; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .mt8 { margin-top: 8px; }
+  .mt16 { margin-top: 16px; }
+  .mb8 { margin-bottom: 8px; }
+  .mb16 { margin-bottom: 16px; }
+  .text2 { color: var(--text2); }
+  .text3 { color: var(--text3); }
+  .mono { font-family: var(--mono); }
+  .bold { font-weight: 700; }
+  .fs12 { font-size: 12px; }
+  .fs13 { font-size: 13px; }
+
+  /* MARKET SNAPSHOT */
+  .moi-meter { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; }
+  .moi-value { font-size: 48px; font-weight: 700; font-family: var(--mono); color: var(--accent); line-height: 1; }
+  .moi-label { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .moi-tier-badge { padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; }
+
+  /* PRINT */
+  @media print {
+    .header, .nav-tabs, .auth-screen { display: none !important; }
+    .content { padding: 0; }
+    .card { break-inside: avoid; }
+    body { background: white; color: black; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="logo">Atticus Home Solutions</div>
+    <h1>Deal Analyzer</h1>
+    <input type="password" id="pw-input" placeholder="Enter password" autocomplete="current-password">
+    <button onclick="login()">Enter</button>
+    <div id="auth-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-brand">Atticus</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showTab('analyzer')">Deal Analyzer</button>
+      <button class="nav-tab" onclick="showTab('creative')">Creative Finance</button>
+      <button class="nav-tab" onclick="showTab('pipeline')">Pipeline Stacker</button>
+      <button class="nav-tab" onclick="showTab('rehab')">Rehab Estimator</button>
+      <button class="nav-tab" onclick="showTab('market')">Market Snapshot</button>
+      <button class="nav-tab" onclick="showTab('comps')">Comp Calculator</button>
+      <button class="nav-tab" onclick="showTab('history')">Deal History</button>
+      <button class="nav-tab" onclick="showTab('settings')">Settings</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ============================================================ -->
+    <!-- DEAL ANALYZER TAB -->
+    <!-- ============================================================ -->
+    <div class="tab-panel active" id="tab-analyzer">
+      <div class="grid2">
+        <!-- LEFT: Inputs -->
+        <div>
+          <div class="card">
+            <div class="card-title">Property Details</div>
+            <div class="mb16">
+              <label>Property Address</label>
+              <input type="text" id="d-addr" placeholder="123 Main St, Norfolk, VA 23502">
+            </div>
+            <div class="grid3 mb16">
+              <div><label>Beds</label><input type="number" id="d-beds" value="3" min="1"></div>
+              <div><label>Baths</label><input type="number" id="d-baths" value="2" min="1" step="0.5"></div>
+              <div><label>Sqft</label><input type="number" id="d-sqft" placeholder="1500"></div>
+            </div>
+            <div class="grid2 mb16">
+              <div><label>Year Built</label><input type="number" id="d-year" placeholder="1985"></div>
+              <div>
+                <label>Property Type</label>
+                <select id="d-type">
+                  <option>SFH</option>
+                  <option>Row House</option>
+                  <option>Duplex</option>
+                  <option>Triplex</option>
+                  <option>Quadplex</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid2">
+              <div>
+                <label>Condition</label>
+                <select id="d-cond">
+                  <option>Distressed</option>
+                  <option>Fair</option>
+                  <option>Good</option>
+                  <option>Excellent</option>
+                </select>
+              </div>
+              <div>
+                <label>Distress Type</label>
+                <select id="d-distress">
+                  <option>Tax Delinquent</option>
+                  <option>Lis Pendens</option>
+                  <option>Code Violation</option>
+                  <option>Probate/Heir</option>
+                  <option>Divorce</option>
+                  <option>Pre-Foreclosure</option>
+                  <option>Vacant</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Financials</div>
+            <!-- ARV CONFIDENCE BAND -->
+            <div class="arv-band">
+              <div class="arv-band-title">ARV Confidence Band</div>
+              <div class="grid3 mb16" style="gap:12px">
+                <div><label>ARV Low ($)</label><input type="number" id="d-arv-low" placeholder="190000" oninput="calcAll()"></div>
+                <div><label>ARV Mid ($) — Primary</label><input type="number" id="d-arv" placeholder="215000" oninput="calcAll()"></div>
+                <div><label>ARV High ($)</label><input type="number" id="d-arv-high" placeholder="235000" oninput="calcAll()"></div>
+              </div>
+              <div class="arv-band-row" id="arv-band-display">
+                <div class="arv-band-item low"><div class="bl">Conservative</div><div class="bv" id="arv-low-disp">—</div></div>
+                <div class="arv-sep"></div>
+                <div class="arv-band-item mid"><div class="bl">Primary</div><div class="bv" id="arv-mid-disp">—</div></div>
+                <div class="arv-sep"></div>
+                <div class="arv-band-item high"><div class="bl">Optimistic</div><div class="bv" id="arv-high-disp">—</div></div>
+              </div>
+              <div class="arv-bar"><div class="arv-bar-fill"></div><div class="arv-bar-mid"></div></div>
+              <div class="mt8 fs12 text3">MAO, exit strategies, and deal score all run on the <strong style="color:var(--accent)">Mid ARV</strong>. Band shown for context.</div>
+            </div>
+
+            <div class="grid3 mb16">
+              <div><label>Repairs ($)</label><input type="number" id="d-repairs" placeholder="45000" oninput="calcAll()"></div>
+              <div><label>As-Is Value ($)</label><input type="number" id="d-asis" placeholder="130000" oninput="calcAll()"></div>
+              <div><label>Seller Ask ($)</label><input type="number" id="d-ask" placeholder="160000" oninput="calcAll()"></div>
+            </div>
+            <div class="grid2">
+              <div><label>Monthly Rent (Est.)</label><input type="number" id="d-rent" placeholder="1400" oninput="calcAll()"></div>
+              <div>
+                <label>Market MOI</label>
+                <select id="d-moi" onchange="calcAll()">
+                  <option value="hot">Under 1 Month (Hot — 90% MAO)</option>
+                  <option value="warm" selected>1–3 Months (Warm — 80% MAO)</option>
+                  <option value="cool">3+ Months (Cool — 70% MAO)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- SELLER NOTES (NEW) -->
+          <div class="card">
+            <div class="card-title">Seller & Property Notes</div>
+            <div class="mb8">
+              <label>Motivation / Condition / Liens / Occupancy / Timeline Pressure</label>
+              <textarea id="d-notes" placeholder="e.g. Widow, 78 yrs old, wants out fast. Code violation on back addition. Son lives on property but doesn't own. No mortgage. Wants $145k, flexible on timeline. House sat vacant for 6 months before contact." rows="4"></textarea>
+            </div>
+            <div class="fs12 text3">These notes feed directly into the AI Seller Script generator below.</div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Output -->
+        <div>
+          <!-- Deal Score -->
+          <div class="card">
+            <div class="flex items-center justify-between mb16">
+              <div class="card-title" style="margin-bottom:0">Deal Score</div>
+              <div class="flex gap8">
+                <button class="btn btn-ghost btn-small" onclick="exportDeal()">Export</button>
+                <button class="btn btn-ghost btn-small" onclick="printDeal()">Print</button>
+                <button class="btn btn-primary btn-small" onclick="saveDeal()">Save Deal</button>
+              </div>
+            </div>
+            <div class="flex gap16 items-center">
+              <div class="score-ring-wrap">
+                <div class="score-ring">
+                  <svg width="100" height="100" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border2)" stroke-width="8"/>
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="8"
+                      stroke-dasharray="251.2" id="score-arc" stroke-dashoffset="251.2"
+                      stroke-linecap="round" style="transition:stroke-dashoffset 0.5s"/>
+                  </svg>
+                  <div class="score-ring-num" id="score-num" style="color:var(--accent)">—</div>
+                </div>
+                <div class="score-label">Deal Score /10</div>
+                <div class="score-verdict" id="score-verdict" style="color:var(--text3)">Enter numbers</div>
+              </div>
+              <div style="flex:1">
+                <div class="stat-grid" style="grid-template-columns:1fr 1fr">
+                  <div class="stat-box"><div class="stat-label">Your MAO</div><div class="stat-val accent" id="out-mao">—</div></div>
+                  <div class="stat-box"><div class="stat-label">End Buyer Max</div><div class="stat-val" id="out-eb-max">—</div></div>
+                  <div class="stat-box"><div class="stat-label">Spread vs Ask</div><div class="stat-val" id="out-spread">—</div></div>
+                  <div class="stat-box"><div class="stat-label">Ask/ARV %</div><div class="stat-val" id="out-ask-arv">—</div></div>
+                </div>
+              </div>
+            </div>
+            <div id="rec-box-area"></div>
+          </div>
+
+          <!-- Exit Strategy Tabs -->
+          <div class="card">
+            <div class="card-title">Exit Strategy Analysis</div>
+            <div class="subtab-bar">
+              <button class="subtab active" onclick="showSubtab('wholesale')">Wholesale</button>
+              <button class="subtab" onclick="showSubtab('novation')">Novation</button>
+              <button class="subtab" onclick="showSubtab('wholetail')">Wholetail</button>
+              <button class="subtab" onclick="showSubtab('flip')">Flip</button>
+              <button class="subtab" onclick="showSubtab('rental')">Rental / BRRRR</button>
+            </div>
+
+            <!-- WHOLESALE -->
+            <div class="subtab-panel active" id="subtab-wholesale">
+              <div class="stat-grid">
+                <div class="stat-box"><div class="stat-label">Your MAO</div><div class="stat-val accent" id="ws-mao">—</div><div class="stat-sub" id="ws-mao-pct">—</div></div>
+                <div class="stat-box"><div class="stat-label">Assign Fee</div><div class="stat-val" id="ws-fee">—</div></div>
+                <div class="stat-box"><div class="stat-label">End Buyer Price</div><div class="stat-val" id="ws-eb">—</div></div>
+                <div class="stat-box"><div class="stat-label">End Buyer ROI</div><div class="stat-val" id="ws-roi">—</div></div>
+              </div>
+              <div id="ws-arv-band" class="arv-band mt8">
+                <div class="arv-band-title">MAO Range Across ARV Band</div>
+                <div class="arv-band-row">
+                  <div class="arv-band-item low"><div class="bl">MAO @ Low ARV</div><div class="bv" id="ws-mao-low">—</div></div>
+                  <div class="arv-sep"></div>
+                  <div class="arv-band-item mid"><div class="bl">MAO @ Mid ARV</div><div class="bv" id="ws-mao-mid">—</div></div>
+                  <div class="arv-sep"></div>
+                  <div class="arv-band-item high"><div class="bl">MAO @ High ARV</div><div class="bv" id="ws-mao-high">—</div></div>
+                </div>
+              </div>
+              <div class="fs12 text3 mt8">MAO = ARV × <span id="ws-pct-label">—</span>% − Repairs. Assignment fee target: <span id="ws-fee-label">—</span></div>
+            </div>
+
+            <!-- NOVATION -->
+            <div class="subtab-panel" id="subtab-novation">
+              <div class="stat-grid">
+                <div class="stat-box"><div class="stat-label">Min Sale Price (MSP)</div><div class="stat-val accent" id="nov-msp">—</div></div>
+                <div class="stat-box"><div class="stat-label">Your Net (at MSP)</div><div class="stat-val" id="nov-net">—</div></div>
+                <div class="stat-box"><div class="stat-label">Seller Price ≤ MSP?</div><div class="stat-val" id="nov-chk1">—</div></div>
+                <div class="stat-box"><div class="stat-label">Ask ≤ As-Is × 90%?</div><div class="stat-val" id="nov-chk2">—</div></div>
+              </div>
+              <div class="arv-band mt8">
+                <div class="arv-band-title">MSP Range Across ARV Band</div>
+                <div class="arv-band-row">
+                  <div class="arv-band-item low"><div class="bl">MSP @ Low ARV</div><div class="bv" id="nov-msp-low">—</div></div>
+                  <div class="arv-sep"></div>
+                  <div class="arv-band-item mid"><div class="bl">MSP @ Mid ARV</div><div class="bv" id="nov-msp-mid">—</div></div>
+                  <div class="arv-sep"></div>
+                  <div class="arv-band-item high"><div class="bl">MSP @ High ARV</div><div class="bv" id="nov-msp-high">—</div></div>
+                </div>
+              </div>
+              <div class="fs12 text3 mt8">MSP = (ARV × 90%) − $30,000 − Repairs. Dual viability check required.</div>
+            </div>
+
+            <!-- WHOLETAIL -->
+            <div class="subtab-panel" id="subtab-wholetail">
+              <div class="stat-grid">
+                <div class="stat-box"><div class="stat-label">Max Buy Price</div><div class="stat-val accent" id="wt-max">—</div></div>
+                <div class="stat-box"><div class="stat-label">Est. Net Profit</div><div class="stat-val" id="wt-net">—</div></div>
+                <div class="stat-box"><div class="stat-label">Hold Cost (2 mo)</div><div class="stat-val" id="wt-hold">—</div></div>
+                <div class="stat-box"><div class="stat-label">Net Min Threshold</div><div class="stat-val" id="wt-min-out">—</div></div>
+              </div>
+              <div class="arv-band mt8">
+                <div class="arv-band-title">Max Buy Range Across ARV Band</div>
+                <div class="arv-band-row">
+                  <div class="arv-band-item low"><div class="bl">Max Buy @ Low ARV</div><div class="bv" id="wt-max-low">—</div></div>
+                  <div class="arv-sep"></div>
+                  <div class="arv-band-item mid"><div class="bl">Max Buy @ Mid ARV</div><div class="bv" id="wt-max-mid">—</div></div>
+                  <div class="arv-sep"></div>
+                  <div class="arv-band-item high"><div class="bl">Max Buy @ High ARV</div><div class="bv" id="wt-max-high">—</div></div>
+                </div>
+              </div>
+              <div class="fs12 text3 mt8">100% HML @ 12%/yr, 2-month hold, sell costs at <span id="wt-sell-pct">—</span>%. Min net: <span id="wt-min-label">—</span>.</div>
+            </div>
+
+            <!-- FLIP -->
+            <div class="subtab-panel" id="subtab-flip">
+              <div class="stat-grid">
+                <div class="stat-box"><div class="stat-label">End Buyer All-In</div><div class="stat-val" id="fl-allin">—</div></div>
+                <div class="stat-box"><div class="stat-label">Net Profit (Flipper)</div><div class="stat-val" id="fl-profit">—</div></div>
+                <div class="stat-box"><div class="stat-label">Flipper ROI</div><div class="stat-val" id="fl-roi">—</div></div>
+                <div class="stat-box"><div class="stat-label">Buy as % ARV</div><div class="stat-val" id="fl-pct">—</div></div>
+              </div>
+              <div class="arv-band mt8">
+                <div class="arv-band-title">Flipper Profit Range Across ARV Band</div>
+                <div class="arv-band-row">
+                  <div class="arv-band-item low"><div class="bl">Profit @ Low ARV</div><div class="bv" id="fl-profit-low">—</div></div>
+                  <div class="arv-sep"></div>
+                  <div class="arv-band-item mid"><div class="bl">Profit @ Mid ARV</div><div class="bv" id="fl-profit-mid">—</div></div>
+                  <div class="arv-sep"></div>
+                  <div class="arv-band-item high"><div class="bl">Profit @ High ARV</div><div class="bv" id="fl-profit-high">—</div></div>
+                </div>
+              </div>
+              <div class="fs12 text3 mt8">Based on end buyer purchasing at your MAO. Selling costs: <span id="fl-sell-pct">—</span>%.</div>
+            </div>
+
+            <!-- RENTAL -->
+            <div class="subtab-panel" id="subtab-rental">
+              <div class="stat-grid">
+                <div class="stat-box"><div class="stat-label">Monthly Cash Flow</div><div class="stat-val" id="re-cf">—</div></div>
+                <div class="stat-box"><div class="stat-label">Cap Rate</div><div class="stat-val" id="re-cap">—</div></div>
+                <div class="stat-box"><div class="stat-label">Cash-on-Cash ROI</div><div class="stat-val" id="re-coc">—</div></div>
+                <div class="stat-box"><div class="stat-label">Est. PITI / mo</div><div class="stat-val" id="re-piti">—</div></div>
+              </div>
+              <div class="fs12 text3 mt8">PITI uses ARV × <span id="re-ltv-label">—</span>% LTV @ <span id="re-rate-label">—</span>% / 30yr + 1.2% tax + 0.8% ins. Expense ratio: <span id="re-exp-label">—</span>%. Assumes purchase at MAO.</div>
+            </div>
+          </div>
+
+          <!-- AI SELLER SCRIPT (NEW) -->
+          <div class="card">
+            <div class="flex items-center justify-between mb16">
+              <div>
+                <div class="card-title" style="margin-bottom:4px">AI Seller Script</div>
+                <div class="fs12 text3">Generates a live-call script based on your deal inputs and seller notes.</div>
+              </div>
+              <div class="flex gap8">
+                <select id="script-type" style="width:auto;padding:7px 12px">
+                  <option value="wholesale">Wholesale Offer</option>
+                  <option value="novation">Novation Pitch</option>
+                  <option value="creative">Creative Finance</option>
+                  <option value="followup">Follow-Up Call</option>
+                </select>
+                <button class="btn btn-primary" onclick="generateScript()">Generate Script</button>
+              </div>
+            </div>
+            <div id="script-output" style="display:none">
+              <div class="ai-panel">
+                <div id="script-loading" class="ai-loading" style="display:none">
+                  <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
+                  <span>Generating seller script...</span>
+                </div>
+                <pre id="script-text"></pre>
+              </div>
+              <div class="flex gap8 mt8">
+                <button class="btn btn-ghost btn-small" onclick="copyScript()">Copy Script</button>
+                <button class="btn btn-ghost btn-small" onclick="clearScript()">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CREATIVE FINANCE TAB -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-creative">
+      <div class="subtab-bar">
+        <button class="subtab active" onclick="showCreativeTab('sub2')">Subject-To</button>
+        <button class="subtab" onclick="showCreativeTab('sf')">Seller Finance</button>
+        <button class="subtab" onclick="showCreativeTab('lo')">Lease Option</button>
+        <button class="subtab" onclick="showCreativeTab('wrap')">Wrap Mortgage</button>
+      </div>
+
+      <!-- SUB2 -->
+      <div class="subtab-panel active" id="creative-sub2">
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title">Subject-To Inputs</div>
+            <div class="grid2 mb16">
+              <div><label>Loan Balance ($)</label><input type="number" id="s2-bal" placeholder="140000" oninput="calcSub2()"></div>
+              <div><label>Existing Rate (%)</label><input type="number" id="s2-rate" value="3.25" step="0.125" oninput="calcSub2()"></div>
+            </div>
+            <div class="grid2 mb16">
+              <div><label>Remaining Term (mo)</label><input type="number" id="s2-term" placeholder="312" oninput="calcSub2()"></div>
+              <div><label>T&I / Month ($)</label><input type="number" id="s2-ti" placeholder="280" oninput="calcSub2()"></div>
+            </div>
+            <div class="grid2 mb16">
+              <div><label>Cash to Seller ($)</label><input type="number" id="s2-cash" placeholder="5000" oninput="calcSub2()"></div>
+              <div><label>Back Payments ($)</label><input type="number" id="s2-back" placeholder="0" oninput="calcSub2()"></div>
+            </div>
+            <div class="grid2">
+              <div><label>Closing Costs ($)</label><input type="number" id="s2-close" placeholder="3500" oninput="calcSub2()"></div>
+              <div><label>Monthly Rent ($)</label><input type="number" id="s2-rent" placeholder="1500" oninput="calcSub2()"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Sub-To Analysis</div>
+            <div class="stat-grid" style="grid-template-columns:1fr 1fr">
+              <div class="stat-box"><div class="stat-label">Entry Cost</div><div class="stat-val" id="s2-entry">—</div></div>
+              <div class="stat-box"><div class="stat-label">Monthly PITI</div><div class="stat-val" id="s2-piti">—</div></div>
+              <div class="stat-box"><div class="stat-label">Monthly CF</div><div class="stat-val" id="s2-cf">—</div></div>
+              <div class="stat-box"><div class="stat-label">CoC ROI</div><div class="stat-val" id="s2-coc">—</div></div>
+              <div class="stat-box"><div class="stat-label">Equity Captured</div><div class="stat-val" id="s2-equity">—</div></div>
+              <div class="stat-box"><div class="stat-label">Existing Rate OK?</div><div class="stat-val" id="s2-rate-ok">—</div></div>
+            </div>
+            <div id="s2-verdict" class="rec-box" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SELLER FINANCE -->
+      <div class="subtab-panel" id="creative-sf">
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title">Seller Finance Inputs</div>
+            <div class="grid2 mb16">
+              <div><label>Purchase Price ($)</label><input type="number" id="sf-price" placeholder="180000" oninput="calcSF()"></div>
+              <div><label>Down Payment ($)</label><input type="number" id="sf-down" placeholder="10000" oninput="calcSF()"></div>
+            </div>
+            <div class="grid2 mb16">
+              <div><label>Interest Rate (%)</label><input type="number" id="sf-rate" value="5.0" step="0.25" oninput="calcSF()"></div>
+              <div><label>Amort Term (yr)</label><input type="number" id="sf-amort" value="30" oninput="calcSF()"></div>
+            </div>
+            <div class="grid2 mb16">
+              <div><label>Balloon (yr, 0=none)</label><input type="number" id="sf-balloon" value="5" oninput="calcSF()"></div>
+              <div><label>T&I / Month ($)</label><input type="number" id="sf-ti" placeholder="200" oninput="calcSF()"></div>
+            </div>
+            <div><label>Monthly Rent ($)</label><input type="number" id="sf-rent" placeholder="1400" oninput="calcSF()"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Seller Finance Analysis</div>
+            <div class="stat-grid" style="grid-template-columns:1fr 1fr">
+              <div class="stat-box"><div class="stat-label">Monthly P&I</div><div class="stat-val" id="sf-pi">—</div></div>
+              <div class="stat-box"><div class="stat-label">Monthly PITI</div><div class="stat-val" id="sf-piti">—</div></div>
+              <div class="stat-box"><div class="stat-label">Monthly CF</div><div class="stat-val" id="sf-cf">—</div></div>
+              <div class="stat-box"><div class="stat-label">CoC ROI</div><div class="stat-val" id="sf-coc">—</div></div>
+              <div class="stat-box"><div class="stat-label">Balloon Balance</div><div class="stat-val" id="sf-ball-bal">—</div></div>
+              <div class="stat-box"><div class="stat-label">Seller Total Return</div><div class="stat-val" id="sf-ret">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEASE OPTION -->
+      <div class="subtab-panel" id="creative-lo">
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title">Lease Option Inputs</div>
+            <div class="grid2 mb16">
+              <div><label>Option Price ($)</label><input type="number" id="lo-price" placeholder="200000" oninput="calcLO()"></div>
+              <div><label>Option Fee ($)</label><input type="number" id="lo-fee" placeholder="5000" oninput="calcLO()"></div>
+            </div>
+            <div class="grid2 mb16">
+              <div><label>Your Lease Pmt ($)</label><input type="number" id="lo-lease" placeholder="1200" oninput="calcLO()"></div>
+              <div><label>Tenant Rent ($)</label><input type="number" id="lo-rent" placeholder="1500" oninput="calcLO()"></div>
+            </div>
+            <div class="grid2 mb16">
+              <div><label>Tenant Option Fee ($)</label><input type="number" id="lo-tfee" placeholder="8000" oninput="calcLO()"></div>
+              <div><label>Term (months)</label><input type="number" id="lo-term" value="24" oninput="calcLO()"></div>
+            </div>
+            <div><label>Tenant Option Price ($)</label><input type="number" id="lo-tprice" placeholder="215000" oninput="calcLO()"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Lease Option Analysis</div>
+            <div class="stat-grid" style="grid-template-columns:1fr 1fr">
+              <div class="stat-box"><div class="stat-label">Monthly Spread</div><div class="stat-val" id="lo-spread">—</div></div>
+              <div class="stat-box"><div class="stat-label">Total Lease Spread</div><div class="stat-val" id="lo-total">—</div></div>
+              <div class="stat-box"><div class="stat-label">Backend Profit</div><div class="stat-val" id="lo-backend">—</div></div>
+              <div class="stat-box"><div class="stat-label">Total Profit (exercise)</div><div class="stat-val" id="lo-profit">—</div></div>
+              <div class="stat-box"><div class="stat-label">If Not Exercised</div><div class="stat-val" id="lo-noex">—</div></div>
+              <div class="stat-box"><div class="stat-label">Option Fee Net</div><div class="stat-val" id="lo-feenet">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WRAP MORTGAGE -->
+      <div class="subtab-panel" id="creative-wrap">
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title">Wrap Mortgage Inputs</div>
+            <div class="card-title mt8" style="color:var(--text2)">Underlying Mortgage</div>
+            <div class="grid2 mb16">
+              <div><label>Underlying Balance ($)</label><input type="number" id="wr-ubal" placeholder="130000" oninput="calcWrap()"></div>
+              <div><label>Underlying Rate (%)</label><input type="number" id="wr-urate" value="3.5" step="0.125" oninput="calcWrap()"></div>
+            </div>
+            <div class="grid2 mb16">
+              <div><label>Underlying P&I ($)</label><input type="number" id="wr-upi" placeholder="584" oninput="calcWrap()"></div>
+              <div><label>Underlying T&I ($)</label><input type="number" id="wr-uti" placeholder="220" oninput="calcWrap()"></div>
+            </div>
+            <div class="card-title mt8" style="color:var(--text2)">Your Wrap Terms</div>
+            <div class="grid2 mb16">
+              <div><label>Wrap Sales Price ($)</label><input type="number" id="wr-price" placeholder="175000" oninput="calcWrap()"></div>
+              <div><label>Buyer Down ($)</label><input type="number" id="wr-down" placeholder="10000" oninput="calcWrap()"></div>
+            </div>
+            <div class="grid2">
+              <div><label>Wrap Rate (%)</label><input type="number" id="wr-rate" value="7.0" step="0.25" oninput="calcWrap()"></div>
+              <div><label>Wrap Term (yr)</label><input type="number" id="wr-term" value="30" oninput="calcWrap()"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Wrap Analysis</div>
+            <div class="stat-grid" style="grid-template-columns:1fr 1fr">
+              <div class="stat-box"><div class="stat-label">Buyer Payment</div><div class="stat-val" id="wr-buyer-pmt">—</div></div>
+              <div class="stat-box"><div class="stat-label">Monthly Spread</div><div class="stat-val" id="wr-spread">—</div></div>
+              <div class="stat-box"><div class="stat-label">Annual Income</div><div class="stat-val" id="wr-annual">—</div></div>
+              <div class="stat-box"><div class="stat-label">Your Equity Position</div><div class="stat-val" id="wr-equity">—</div></div>
+              <div class="stat-box"><div class="stat-label">Buyer's Equity Start</div><div class="stat-val" id="wr-buyer-eq">—</div></div>
+              <div class="stat-box"><div class="stat-label">Rate Spread</div><div class="stat-val" id="wr-rate-spread">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PIPELINE STACKER TAB -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-pipeline">
+      <div class="card">
+        <div class="flex items-center justify-between mb16">
+          <div class="card-title" style="margin-bottom:0">Pipeline Deals</div>
+          <div class="flex gap8">
+            <button class="btn btn-ghost btn-small" onclick="addPipelineDeal()">+ Add Deal</button>
+            <button class="btn btn-primary btn-small" onclick="runSTACK()">Run STACK Score</button>
+          </div>
+        </div>
+        <div id="pipeline-input-area">
+          <!-- Deals added here -->
+        </div>
+      </div>
+
+      <div id="stack-results" style="display:none">
+        <div class="card">
+          <div class="card-title">Pipeline Health</div>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-label">Total Deals</div><div class="stat-val accent" id="ph-total">0</div></div>
+            <div class="stat-box"><div class="stat-label">Hot (≥18)</div><div class="stat-val green" id="ph-hot">0</div></div>
+            <div class="stat-box"><div class="stat-label">Active Priority</div><div class="stat-val yellow" id="ph-active">0</div></div>
+            <div class="stat-box"><div class="stat-label">Avg STACK Score</div><div class="stat-val" id="ph-avg">0</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Ranked Pipeline</div>
+          <div id="stack-ranked-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- REHAB ESTIMATOR TAB -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-rehab">
+      <div class="grid2">
+        <div>
+          <div class="card">
+            <div class="card-title">Rehab Inputs</div>
+            <div class="mb16">
+              <label>Market</label>
+              <input type="text" id="rh-market" placeholder="Norfolk, VA" oninput="calcRehab()">
+            </div>
+            <div class="mb16">
+              <label>Sqft</label>
+              <input type="number" id="rh-sqft" placeholder="1500" oninput="calcRehab()">
+            </div>
+            <div class="mb16">
+              <label>Rehab Tier</label>
+              <div class="rehab-tier-bar">
+                <button class="rehab-tier-seg t-cosmetic active" onclick="setRehabTier('cosmetic',this)">Cosmetic</button>
+                <button class="rehab-tier-seg t-light" onclick="setRehabTier('light',this)">Light</button>
+                <button class="rehab-tier-seg t-medium" onclick="setRehabTier('medium',this)">Medium</button>
+                <button class="rehab-tier-seg t-heavy" onclick="setRehabTier('heavy',this)">Heavy</button>
+                <button class="rehab-tier-seg t-gut" onclick="setRehabTier('gut',this)">Full Gut</button>
+              </div>
+            </div>
+            <div class="mb16">
+              <label>Labor Cost Tier</label>
+              <select id="rh-labor" onchange="calcRehab()">
+                <option value="1">Tier 1 — Low Cost (Rural / Secondary markets)</option>
+                <option value="1.2">Tier 2 — Mid Cost (Suburban)</option>
+                <option value="1.5">Tier 3 — High Cost (Urban / HCOL)</option>
+              </select>
+            </div>
+            <div class="card-title mt16" style="margin-bottom:12px">Big 6 Flags</div>
+            <div class="grid2">
+              <label style="text-transform:none;font-size:13px;letter-spacing:0;display:flex;gap:8px;align-items:center;cursor:pointer">
+                <input type="checkbox" id="big-roof" onchange="calcRehab()"> New Roof
+              </label>
+              <label style="text-transform:none;font-size:13px;letter-spacing:0;display:flex;gap:8px;align-items:center;cursor:pointer">
+                <input type="checkbox" id="big-hvac" onchange="calcRehab()"> HVAC Replacement
+              </label>
+              <label style="text-transform:none;font-size:13px;letter-spacing:0;display:flex;gap:8px;align-items:center;cursor:pointer">
+                <input type="checkbox" id="big-electric" onchange="calcRehab()"> Full Rewire
+              </label>
+              <label style="text-transform:none;font-size:13px;letter-spacing:0;display:flex;gap:8px;align-items:center;cursor:pointer">
+                <input type="checkbox" id="big-plumb" onchange="calcRehab()"> Replumb
+              </label>
+              <label style="text-transform:none;font-size:13px;letter-spacing:0;display:flex;gap:8px;align-items:center;cursor:pointer">
+                <input type="checkbox" id="big-foundation" onchange="calcRehab()"> Foundation Work
+              </label>
+              <label style="text-transform:none;font-size:13px;letter-spacing:0;display:flex;gap:8px;align-items:center;cursor:pointer">
+                <input type="checkbox" id="big-windows" onchange="calcRehab()"> Full Window Replace
+              </label>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">Rehab Estimate</div>
+            <div class="arv-band mb16">
+              <div class="arv-band-title">Cost Range</div>
+              <div class="arv-band-row">
+                <div class="arv-band-item low"><div class="bl">Conservative</div><div class="bv" id="rh-low">—</div></div>
+                <div class="arv-sep"></div>
+                <div class="arv-band-item mid"><div class="bl">Midpoint</div><div class="bv" id="rh-mid">—</div></div>
+                <div class="arv-sep"></div>
+                <div class="arv-band-item high"><div class="bl">Worst Case</div><div class="bv" id="rh-high">—</div></div>
+              </div>
+            </div>
+            <div class="stat-grid" style="grid-template-columns:1fr 1fr">
+              <div class="stat-box"><div class="stat-label">Base (sqft × rate)</div><div class="stat-val accent" id="rh-base">—</div></div>
+              <div class="stat-box"><div class="stat-label">Big 6 Add-Ons</div><div class="stat-val" id="rh-big6">—</div></div>
+              <div class="stat-box"><div class="stat-label">Total Mid Est.</div><div class="stat-val" id="rh-total">—</div></div>
+              <div class="stat-box"><div class="stat-label">$/sqft</div><div class="stat-val" id="rh-persqft">—</div></div>
+            </div>
+            <div class="divider"></div>
+            <div class="card-title">Tier Reference Table</div>
+            <table class="moi-table" id="rh-ref-table">
+              <thead><tr>
+                <th>Tier</th><th>$/Sqft Range</th><th>Description</th>
+              </tr></thead>
+              <tbody>
+                <tr><td>Cosmetic</td><td>$10–$18</td><td>Paint, flooring, fixtures, landscaping</td></tr>
+                <tr><td>Light</td><td>$19–$28</td><td>Kitchen/bath surface updates, minor repairs</td></tr>
+                <tr><td>Medium</td><td>$29–$45</td><td>Full kitchen/bath remodel, HVAC service, roof repair</td></tr>
+                <tr><td>Heavy</td><td>$46–$70</td><td>Structural, systems replacement, gut rooms</td></tr>
+                <tr><td>Full Gut</td><td>$71–$120</td><td>Down to studs, all systems, full rebuild</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MARKET SNAPSHOT TAB -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-market">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">MOI Calculator</div>
+          <div class="mb16">
+            <label>Active Listings</label>
+            <input type="number" id="mkt-active" placeholder="142" oninput="calcMOI()">
+          </div>
+          <div class="mb16">
+            <label>Sales / Month (last 3 mo avg)</label>
+            <input type="number" id="mkt-sales" placeholder="48" oninput="calcMOI()">
+          </div>
+          <div class="mb16">
+            <label>Market / Zip</label>
+            <input type="text" id="mkt-label" placeholder="Norfolk VA 23502">
+          </div>
+          <div class="moi-meter">
+            <div class="moi-value" id="moi-result">—</div>
+            <div>
+              <div class="moi-label">Months of Inventory</div>
+              <div id="moi-tier-badge" class="badge mt8">Enter data above</div>
+            </div>
+          </div>
+          <table class="moi-table" id="moi-ref">
+            <thead><tr><th>MOI</th><th>Market</th><th>MAO Tier</th></tr></thead>
+            <tbody>
+              <tr id="moi-row-hot"><td>&lt; 1 month</td><td>Hot 🔥</td><td>90% MAO</td></tr>
+              <tr id="moi-row-warm"><td>1–3 months</td><td>Warm</td><td>80% MAO</td></tr>
+              <tr id="moi-row-cool"><td>3+ months</td><td>Cool ❄️</td><td>70% MAO</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-title">Market Notes</div>
+          <div class="mb16">
+            <label>Market Name</label>
+            <input type="text" id="mkt-name" placeholder="Norfolk VA — ZIP 23502">
+          </div>
+          <div class="mb16">
+            <label>Avg DOM</label>
+            <input type="number" id="mkt-dom" placeholder="22">
+          </div>
+          <div class="mb16">
+            <label>Median Sale Price</label>
+            <input type="number" id="mkt-median" placeholder="285000">
+          </div>
+          <div class="mb16">
+            <label>Notes</label>
+            <textarea id="mkt-notes" placeholder="Seasonal trends, buyer pool depth, comp availability, investor competition level..." rows="5"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- COMP CALCULATOR TAB -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-comps">
+      <div class="card">
+        <div class="flex items-center justify-between mb16">
+          <div>
+            <div class="card-title" style="margin-bottom:4px">Comp Adjustment Table</div>
+            <div class="fs12 text3">Add comps, apply adjustments, and calculate adjusted ARV. Uses your standard adjustment midpoints.</div>
+          </div>
+          <div class="flex gap8">
+            <button class="btn btn-ghost btn-small" onclick="addCompRow()">+ Add Comp</button>
+            <button class="btn btn-primary btn-small" onclick="calcComps()">Calculate ARV</button>
+          </div>
+        </div>
+        <div class="mb16">
+          <label>Subject Property ARV (unadjusted, from deal inputs)</label>
+          <input type="number" id="comp-arv-base" placeholder="Pulls from Deal Analyzer if left blank">
+        </div>
+        <div style="overflow-x:auto">
+          <table class="comp-table" id="comp-table">
+            <thead>
+              <tr>
+                <th>Address</th><th>Sale Price</th><th>Sqft</th><th>Bed Δ</th><th>Bath Δ</th><th>Sqft Adj</th><th>Pool</th><th>Garage Δ</th><th>Adj Price</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="comp-tbody"></tbody>
+          </table>
+        </div>
+        <div class="divider"></div>
+        <div id="comp-results" style="display:none">
+          <div class="arv-band">
+            <div class="arv-band-title">Calculated ARV from Comps</div>
+            <div class="arv-band-row">
+              <div class="arv-band-item low"><div class="bl">Low Comp</div><div class="bv" id="comp-low">—</div></div>
+              <div class="arv-sep"></div>
+              <div class="arv-band-item mid"><div class="bl">Avg (Adjusted)</div><div class="bv" id="comp-avg">—</div></div>
+              <div class="arv-sep"></div>
+              <div class="arv-band-item high"><div class="bl">High Comp</div><div class="bv" id="comp-high">—</div></div>
+            </div>
+          </div>
+          <div class="flex gap8 mt8">
+            <button class="btn btn-primary btn-small" onclick="pushARVtoDeal()">Push Avg ARV to Deal Analyzer</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="card-title">Standard Adjustment Reference</div>
+        <div class="grid3 mt8">
+          <div class="stat-box"><div class="stat-label">Bed Difference</div><div class="stat-val fs12" style="font-size:16px">±$15,000</div><div class="stat-sub">Per bed vs subject</div></div>
+          <div class="stat-box"><div class="stat-label">Bath Difference</div><div class="stat-val fs12" style="font-size:16px">±$10,000</div><div class="stat-sub">Per bath vs subject</div></div>
+          <div class="stat-box"><div class="stat-label">Pool</div><div class="stat-val fs12" style="font-size:16px">±$10,000</div><div class="stat-sub">If subject lacks pool comp has</div></div>
+          <div class="stat-box"><div class="stat-label">Garage</div><div class="stat-val fs12" style="font-size:16px">±$10,000</div><div class="stat-sub">Per car bay vs subject</div></div>
+          <div class="stat-box"><div class="stat-label">Carport</div><div class="stat-val fs12" style="font-size:16px">±$7,500</div><div class="stat-sub">Per space vs subject</div></div>
+          <div class="stat-box"><div class="stat-label">Sqft Adjustment</div><div class="stat-val fs12" style="font-size:16px">$50/sqft</div><div class="stat-sub">Default rate, override per market</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- DEAL HISTORY TAB (NEW) -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-history">
+      <div class="card">
+        <div class="flex items-center justify-between mb16">
+          <div>
+            <div class="card-title" style="margin-bottom:4px">Saved Deals</div>
+            <div class="fs12 text3">Click any deal to reload it in the Deal Analyzer. Saved locally in your browser.</div>
+          </div>
+          <button class="btn btn-red btn-small" onclick="clearHistory()">Clear All</button>
+        </div>
+        <div id="history-list">
+          <div class="fs13 text3" id="history-empty">No saved deals yet. Run a deal and click "Save Deal."</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SETTINGS TAB -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="grid2">
+        <div class="card">
+          <div class="settings-section-title">Wholesale / MAO Formula</div>
+          <div class="grid2 mb16">
+            <div><label>MAO % (Hot Market)</label><input type="number" id="s-mao-hot" value="90" oninput="saveSettings()"></div>
+            <div><label>MAO % (Warm Market)</label><input type="number" id="s-mao-warm" value="80" oninput="saveSettings()"></div>
+          </div>
+          <div class="grid2 mb16">
+            <div><label>MAO % (Cool Market)</label><input type="number" id="s-mao-cool" value="70" oninput="saveSettings()"></div>
+            <div><label>Min Assignment Fee ($)</label><input type="number" id="s-min-fee" value="15000" oninput="saveSettings()"></div>
+          </div>
+          <div class="settings-section-title mt16">Selling Costs & Hold</div>
+          <div class="grid2 mb16">
+            <div><label>Selling Costs (%)</label><input type="number" id="s-sell-pct" value="8" step="0.5" oninput="saveSettings()"></div>
+            <div><label>Hold Months (Flip)</label><input type="number" id="s-hold-mo" value="6" oninput="saveSettings()"></div>
+          </div>
+          <div><label>HML Rate (% / yr)</label><input type="number" id="s-hml-rate" value="12" step="0.5" oninput="saveSettings()"></div>
+        </div>
+        <div class="card">
+          <div class="settings-section-title">Rental Underwriting</div>
+          <div class="grid2 mb16">
+            <div><label>Expense Ratio (%)</label><input type="number" id="s-exp-ratio" value="40" oninput="saveSettings()"></div>
+            <div><label>Rent LTV (%)</label><input type="number" id="s-ltv" value="75" oninput="saveSettings()"></div>
+          </div>
+          <div><label>DSCR Loan Rate (%)</label><input type="number" id="s-loan-rate" value="7.5" step="0.25" oninput="saveSettings()"></div>
+          <div class="settings-section-title mt16">Novation & Wholetail</div>
+          <div class="grid2 mb16">
+            <div><label>Novation Min Net ($)</label><input type="number" id="s-nov-min" value="30000" oninput="saveSettings()"></div>
+            <div><label>Wholetail Min Net ($)</label><input type="number" id="s-wt-min" value="50000" oninput="saveSettings()"></div>
+          </div>
+          <div class="settings-section-title mt16">Sub-To Thresholds</div>
+          <div class="grid2">
+            <div><label>Max Entry Fee ($)</label><input type="number" id="s-s2-entry" value="10000" oninput="saveSettings()"></div>
+            <div><label>Max Existing Rate (%)</label><input type="number" id="s-s2-rate" value="5.0" step="0.25" oninput="saveSettings()"></div>
+          </div>
+          <div class="grid2 mt16">
+            <div><label>Min CoC ROI (%)</label><input type="number" id="s-s2-coc" value="12" oninput="saveSettings()"></div>
+            <div><label>Min Cap Rate (%)</label><input type="number" id="s-s2-cap" value="6" oninput="saveSettings()"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section-title">Comp Adjustments ($/unit)</div>
+        <div class="grid4">
+          <div><label>Bed Adj ($)</label><input type="number" id="s-adj-bed" value="15000" oninput="saveSettings()"></div>
+          <div><label>Bath Adj ($)</label><input type="number" id="s-adj-bath" value="10000" oninput="saveSettings()"></div>
+          <div><label>Pool Adj ($)</label><input type="number" id="s-adj-pool" value="10000" oninput="saveSettings()"></div>
+          <div><label>Garage Adj ($)</label><input type="number" id="s-adj-gar" value="10000" oninput="saveSettings()"></div>
+          <div><label>Carport Adj ($)</label><input type="number" id="s-adj-cp" value="7500" oninput="saveSettings()"></div>
+          <div><label>$/Sqft Adj</label><input type="number" id="s-adj-sqft" value="50" oninput="saveSettings()"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section-title">Anthropic API Key (for AI Seller Script)</div>
+        <div class="mb8">
+          <label>API Key</label>
+          <input type="password" id="s-api-key" placeholder="sk-ant-..." oninput="saveSettings()">
+        </div>
+        <div class="fs12 text3">Stored locally in your browser only. Required for the AI Seller Script generator. Get your key at console.anthropic.com.</div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<script>
+// ============================================================
+// AUTH
+// ============================================================
+const ATTICUS_PW = 'atticus2024';
+
+function login() {
+  const v = document.getElementById('pw-input').value;
+  if (v === ATTICUS_PW) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadSettings();
+    initPipeline();
+    addCompRow(); addCompRow(); addCompRow();
+    loadHistory();
+    calcAll();
+    calcRehab();
+  } else {
+    document.getElementById('auth-err').textContent = 'Incorrect password.';
+  }
+}
+document.getElementById('pw-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+
+// ============================================================
+// TABS
+// ============================================================
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+function showSubtab(name) {
+  document.querySelectorAll('#tab-analyzer .subtab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#tab-analyzer .subtab').forEach(t => t.classList.remove('active'));
+  document.getElementById('subtab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+function showCreativeTab(name) {
+  document.querySelectorAll('#tab-creative .subtab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#tab-creative .subtab').forEach(t => t.classList.remove('active'));
+  document.getElementById('creative-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+const $ = id => document.getElementById(id);
+const n = id => parseFloat($(id).value) || 0;
+const fmt = v => v === null || isNaN(v) ? '—' : '$' + Math.round(v).toLocaleString();
+const fmtPct = v => isNaN(v) || !isFinite(v) ? '—' : v.toFixed(1) + '%';
+
+function S() {
+  return {
+    maoPct: { hot: n('s-mao-hot'), warm: n('s-mao-warm'), cool: n('s-mao-cool') },
+    minFee: n('s-min-fee'),
+    sellPct: n('s-sell-pct'),
+    holdMo: n('s-hold-mo'),
+    hmlRate: n('s-hml-rate'),
+    expRatio: n('s-exp-ratio'),
+    ltv: n('s-ltv'),
+    loanRate: n('s-loan-rate'),
+    novMin: n('s-nov-min'),
+    wtMin: n('s-wt-min'),
+    s2Entry: n('s-s2-entry'),
+    s2Rate: n('s-s2-rate'),
+    s2CoC: n('s-s2-coc'),
+    s2Cap: n('s-s2-cap'),
+    adjBed: n('s-adj-bed'),
+    adjBath: n('s-adj-bath'),
+    adjPool: n('s-adj-pool'),
+    adjGar: n('s-adj-gar'),
+    adjCp: n('s-adj-cp'),
+    adjSqft: n('s-adj-sqft'),
+    apiKey: $('s-api-key') ? $('s-api-key').value.trim() : ''
+  };
+}
+
+function getMaoPct() {
+  const moi = $('d-moi').value;
+  const s = S();
+  return moi === 'hot' ? s.maoPct.hot : moi === 'cool' ? s.maoPct.cool : s.maoPct.warm;
+}
+
+// ARV helpers
+function getARVs() {
+  const mid = n('d-arv');
+  const low = n('d-arv-low') || mid * 0.92;
+  const high = n('d-arv-high') || mid * 1.08;
+  return { low, mid, high };
+}
+
+function maoForARV(arv, repairs, maoP) {
+  return arv * (maoP / 100) - repairs;
+}
+
+// ============================================================
+// MAIN CALC
+// ============================================================
+function calcAll() {
+  const arvs = getARVs();
+  const arv = arvs.mid;
+  const repairs = n('d-repairs');
+  const asis = n('d-asis');
+  const ask = n('d-ask');
+  const rent = n('d-rent');
+  const s = S();
+  const maoP = getMaoPct();
+
+  // ARV band display
+  $('arv-low-disp').textContent = arvs.low ? fmt(arvs.low) : '—';
+  $('arv-mid-disp').textContent = arv ? fmt(arv) : '—';
+  $('arv-high-disp').textContent = arvs.high ? fmt(arvs.high) : '—';
+
+  if (!arv) return;
+
+  const mao = maoForARV(arv, repairs, maoP);
+  const ebMax = mao + s.minFee;
+  const spread = ask ? mao - ask : null;
+  const askArvPct = ask && arv ? (ask / arv * 100) : null;
+
+  // Header stats
+  $('out-mao').textContent = fmt(mao);
+  $('out-eb-max').textContent = fmt(ebMax);
+  $('out-spread').textContent = spread !== null ? (spread >= 0 ? '+' : '') + fmt(spread) : '—';
+  $('out-spread').className = 'stat-val ' + (spread === null ? '' : spread >= s.minFee ? 'green' : spread >= 0 ? 'yellow' : 'red');
+  $('out-ask-arv').textContent = askArvPct !== null ? fmtPct(askArvPct) : '—';
+  $('out-ask-arv').className = 'stat-val ' + (askArvPct === null ? '' : askArvPct <= maoP ? 'green' : askArvPct <= maoP + 10 ? 'yellow' : 'red');
+
+  // WHOLESALE tab
+  const maoLow = maoForARV(arvs.low, repairs, maoP);
+  const maoMid = mao;
+  const maoHigh = maoForARV(arvs.high, repairs, maoP);
+  $('ws-mao').textContent = fmt(mao);
+  $('ws-mao-pct').textContent = maoP + '% MAO';
+  $('ws-fee').textContent = fmt(s.minFee);
+  $('ws-eb').textContent = fmt(ebMax);
+  const ebROI = arv > 0 ? (arv - ebMax - repairs - arv * (s.sellPct/100)) / (ebMax + repairs) * 100 : null;
+  $('ws-roi').textContent = ebROI !== null ? fmtPct(ebROI) : '—';
+  $('ws-roi').className = 'stat-val ' + (ebROI === null ? '' : ebROI >= 15 ? 'green' : ebROI >= 8 ? 'yellow' : 'red');
+  $('ws-mao-low').textContent = fmt(maoLow);
+  $('ws-mao-mid').textContent = fmt(maoMid);
+  $('ws-mao-high').textContent = fmt(maoHigh);
+  $('ws-pct-label').textContent = maoP;
+  $('ws-fee-label').textContent = fmt(s.minFee);
+
+  // NOVATION tab
+  function novMSP(a) { return a * 0.9 - s.novMin - repairs; }
+  const msp = novMSP(arv);
+  const novNet = msp > 0 ? msp - (ask || 0) : null;
+  const novChk1 = ask && msp ? (ask <= msp ? '✅ YES' : '❌ NO') : '—';
+  const novChk2 = ask && asis ? (ask <= asis * 0.9 ? '✅ YES' : '❌ NO') : '—';
+  $('nov-msp').textContent = fmt(msp);
+  $('nov-net').textContent = novNet !== null ? fmt(novNet) : '—';
+  $('nov-chk1').textContent = novChk1;
+  $('nov-chk1').className = 'stat-val ' + (novChk1.includes('YES') ? 'green' : novChk1.includes('NO') ? 'red' : '');
+  $('nov-chk2').textContent = novChk2;
+  $('nov-chk2').className = 'stat-val ' + (novChk2.includes('YES') ? 'green' : novChk2.includes('NO') ? 'red' : '');
+  $('nov-msp-low').textContent = fmt(novMSP(arvs.low));
+  $('nov-msp-mid').textContent = fmt(msp);
+  $('nov-msp-high').textContent = fmt(novMSP(arvs.high));
+
+  // WHOLETAIL tab
+  function wtMaxBuy(a) {
+    const holdCost = a * (s.hmlRate/100/12) * 2;
+    const sellCost = a * (s.sellPct/100);
+    return a - holdCost - sellCost - s.wtMin;
+  }
+  const wtMax = wtMaxBuy(arv);
+  const wtHold = arv * (s.hmlRate/100/12) * 2;
+  const wtNet = ask ? arv - ask - wtHold - arv * (s.sellPct/100) : null;
+  $('wt-max').textContent = fmt(wtMax);
+  $('wt-net').textContent = wtNet !== null ? fmt(wtNet) : '—';
+  $('wt-net').className = 'stat-val ' + (wtNet === null ? '' : wtNet >= s.wtMin ? 'green' : wtNet >= 0 ? 'yellow' : 'red');
+  $('wt-hold').textContent = fmt(wtHold);
+  $('wt-min-out').textContent = fmt(s.wtMin);
+  $('wt-max-low').textContent = fmt(wtMaxBuy(arvs.low));
+  $('wt-max-mid').textContent = fmt(wtMax);
+  $('wt-max-high').textContent = fmt(wtMaxBuy(arvs.high));
+  $('wt-sell-pct').textContent = s.sellPct;
+  $('wt-min-label').textContent = fmt(s.wtMin);
+
+  // FLIP tab
+  const flAllin = mao + repairs;
+  function flProfit(a) { return a - (maoForARV(a, repairs, maoP) + repairs) - a * (s.sellPct/100); }
+  const flProfitMid = flProfit(arv);
+  const flROI = flAllin > 0 ? flProfitMid / flAllin * 100 : null;
+  const flPct = arv > 0 ? (mao / arv * 100) : null;
+  $('fl-allin').textContent = fmt(flAllin);
+  $('fl-profit').textContent = fmt(flProfitMid);
+  $('fl-profit').className = 'stat-val ' + (flProfitMid >= 30000 ? 'green' : flProfitMid >= 15000 ? 'yellow' : 'red');
+  $('fl-roi').textContent = flROI !== null ? fmtPct(flROI) : '—';
+  $('fl-roi').className = 'stat-val ' + (flROI === null ? '' : flROI >= 20 ? 'green' : flROI >= 10 ? 'yellow' : 'red');
+  $('fl-pct').textContent = flPct !== null ? fmtPct(flPct) : '—';
+  $('fl-profit-low').textContent = fmt(flProfit(arvs.low));
+  $('fl-profit-mid').textContent = fmt(flProfitMid);
+  $('fl-profit-high').textContent = fmt(flProfit(arvs.high));
+  $('fl-sell-pct').textContent = s.sellPct;
+
+  // RENTAL tab
+  if (rent > 0) {
+    const noi = rent * 12 * (1 - s.expRatio / 100);
+    const capRate = noi / arv * 100;
+    const loanAmt = mao * (s.ltv / 100);
+    const r = s.loanRate / 100 / 12;
+    const n360 = 360;
+    const pi = loanAmt * (r * Math.pow(1+r,n360)) / (Math.pow(1+r,n360)-1);
+    const taxMo = arv * 0.012 / 12;
+    const insMo = arv * 0.008 / 12;
+    const piti = pi + taxMo + insMo;
+    const cf = rent - piti - rent * (s.expRatio / 100);
+    const down = mao * (1 - s.ltv / 100);
+    const coc = down > 0 ? (cf * 12 / down * 100) : null;
+    $('re-cf').textContent = fmt(cf);
+    $('re-cf').className = 'stat-val ' + (cf >= 200 ? 'green' : cf >= 0 ? 'yellow' : 'red');
+    $('re-cap').textContent = fmtPct(capRate);
+    $('re-cap').className = 'stat-val ' + (capRate >= 8 ? 'green' : capRate >= 5 ? 'yellow' : 'red');
+    $('re-coc').textContent = coc !== null ? fmtPct(coc) : '—';
+    $('re-coc').className = 'stat-val ' + (coc === null ? '' : coc >= s.s2CoC ? 'green' : coc >= 6 ? 'yellow' : 'red');
+    $('re-piti').textContent = fmt(piti);
+    $('re-ltv-label').textContent = s.ltv;
+    $('re-rate-label').textContent = s.loanRate;
+    $('re-exp-label').textContent = s.expRatio;
+  } else {
+    ['re-cf','re-cap','re-coc','re-piti'].forEach(id => $(id).textContent = '—');
+  }
+
+  calcScore(arv, repairs, mao, ask, spread, ebROI, rent, s);
+  $('ws-mao').textContent = fmt(mao);
+}
+
+// ============================================================
+// DEAL SCORE
+// ============================================================
+function calcScore(arv, repairs, mao, ask, spread, ebROI, rent, s) {
+  if (!arv) return;
+  let score = 0;
+
+  // Spread score (0–3)
+  if (spread !== null) {
+    if (spread >= s.minFee * 1.5) score += 3;
+    else if (spread >= s.minFee) score += 2;
+    else if (spread >= 0) score += 1;
+    else score += 0;
+  } else { score += 1.5; }
+
+  // EB ROI (0–2)
+  if (ebROI !== null) {
+    if (ebROI >= 20) score += 2;
+    else if (ebROI >= 12) score += 1.5;
+    else if (ebROI >= 8) score += 1;
+    else score += 0;
+  } else { score += 1; }
+
+  // Repair risk (0–2)
+  const repairPct = arv > 0 ? repairs / arv : 0;
+  if (repairPct < 0.1) score += 2;
+  else if (repairPct < 0.2) score += 1.5;
+  else if (repairPct < 0.3) score += 1;
+  else score += 0;
+
+  // Ask/ARV ratio (0–2)
+  if (ask) {
+    const ratio = ask / arv;
+    if (ratio <= 0.6) score += 2;
+    else if (ratio <= 0.7) score += 1.5;
+    else if (ratio <= 0.8) score += 1;
+    else score += 0;
+  } else { score += 1; }
+
+  // Rental viability (0–1)
+  score += rent > 0 ? 1 : 0;
+
+  const finalScore = Math.round(Math.min(10, score));
+  $('score-num').textContent = finalScore;
+  const arc = document.getElementById('score-arc');
+  const offset = 251.2 * (1 - finalScore / 10);
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = finalScore >= 7 ? 'var(--green)' : finalScore >= 5 ? 'var(--yellow)' : 'var(--red)';
+  $('score-num').style.color = finalScore >= 7 ? 'var(--green)' : finalScore >= 5 ? 'var(--yellow)' : 'var(--red)';
+
+  const verdicts = {
+    9: ['🔥 STRONG DEAL', 'green'], 10: ['🔥 STRONG DEAL', 'green'],
+    7: ['✅ SOLID DEAL', 'green'], 8: ['✅ SOLID DEAL', 'green'],
+    5: ['⚠️ MARGINAL', 'yellow'], 6: ['⚠️ MARGINAL', 'yellow'],
+    3: ['❌ PASS', 'red'], 4: ['❌ PASS', 'red'],
+    1: ['❌ DEAD DEAL', 'red'], 2: ['❌ DEAD DEAL', 'red'], 0: ['❌ DEAD DEAL', 'red'],
+  };
+  const [vt, vc] = verdicts[finalScore] || ['—', 'text3'];
+  $('score-verdict').textContent = vt;
+  $('score-verdict').style.color = vc === 'green' ? 'var(--green)' : vc === 'yellow' ? 'var(--yellow)' : vc === 'red' ? 'var(--red)' : 'var(--text3)';
+
+  // Rec box
+  const recMao = maoForARV(n('d-arv'), n('d-repairs'), getMaoPct());
+  const recAsk = n('d-ask');
+  let recClass = finalScore >= 7 ? 'green' : finalScore >= 5 ? 'yellow' : 'red';
+  let recMsg = '';
+  if (finalScore >= 7) {
+    recMsg = `<strong>Move on this one.</strong> Your MAO of ${fmt(recMao)} leaves strong spread and end-buyer upside. ${recAsk && recAsk > recMao ? 'Seller is asking ' + fmt(recAsk - recMao) + ' over your MAO — negotiate hard.' : 'Asking price is within your number.'}`;
+  } else if (finalScore >= 5) {
+    recMsg = `<strong>Proceed with caution.</strong> Deal is marginal at current inputs. ${recAsk && recAsk > recMao ? 'Need seller to come down ' + fmt(recAsk - recMao) + ' to hit your MAO.' : 'Run comps before committing.'} Consider novation or creative finance if traditional wholesale doesn't pencil.`;
+  } else {
+    recMsg = `<strong>Pass or restructure.</strong> Numbers don't work at current inputs. ${recAsk && recAsk > recMao ? 'Seller needs to drop ' + fmt(recAsk - recMao) + ' to reach your floor.' : 'ARV or repair estimate may need revisiting.'} Only viable with significant price reduction or creative structure.`;
+  }
+  $('rec-box-area').innerHTML = `<div class="rec-box ${recClass}"><div class="rec-box-title">${vt}</div><p>${recMsg}</p></div>`;
+}
+
+// ============================================================
+// AI SELLER SCRIPT (NEW)
+// ============================================================
+async function generateScript() {
+  const s = S();
+  const apiKey = s.apiKey || (localStorage.getItem('atticus_settings') ? JSON.parse(localStorage.getItem('atticus_settings')).apiKey : '');
+
+  if (!apiKey) {
+    alert('Add your Anthropic API key in Settings to use the AI Seller Script generator.');
+    return;
+  }
+
+  const arv = n('d-arv');
+  const mao = maoForARV(arv, n('d-repairs'), getMaoPct());
+  const ask = n('d-ask');
+  const repairs = n('d-repairs');
+  const addr = $('d-addr').value || 'the property';
+  const notes = $('d-notes').value || '';
+  const scriptType = $('script-type').value;
+  const beds = $('d-beds').value;
+  const baths = $('d-baths').value;
+  const sqft = $('d-sqft').value;
+  const cond = $('d-cond').value;
+  const distress = $('d-distress').value;
+
+  const scriptTypeMap = {
+    wholesale: 'a cash wholesale offer',
+    novation: 'a novation/listing agreement approach',
+    creative: 'creative financing options (subject-to, seller finance, or lease option)',
+    followup: 'a warm follow-up call on a lead who previously said no'
+  };
+
+  const systemPrompt = `You are an expert real estate wholesaling coach helping write live call scripts. Write in a natural, conversational tone — not salesy, not pushy. The wholesaler is a professional who leads with empathy and solves problems. Avoid corporate language. Scripts should feel human, warm, and direct. Format with clear sections: OPENER, DISCOVERY, PITCH, OBJECTIONS, CLOSE. Keep total length under 600 words.`;
+
+  const userPrompt = `Write a seller call script for ${scriptTypeMap[scriptType]}.
+
+PROPERTY: ${addr}
+Beds/Baths/Sqft: ${beds}/${baths}/${sqft || 'unknown'}
+Condition: ${cond}
+Distress Type: ${distress}
+ARV (our estimate): ${arv ? fmt(arv) : 'not determined yet'}
+Our MAO: ${mao > 0 ? fmt(mao) : 'not determined yet'}
+Seller Asking: ${ask ? fmt(ask) : 'unknown'}
+Estimated Repairs: ${repairs ? fmt(repairs) : 'unknown'}
+
+SELLER NOTES FROM CRM:
+${notes || 'No notes entered.'}
+
+Write a complete, natural call script the wholesaler can use right now. Include 2-3 anticipated objections and how to handle them. End with a clear close.`;
+
+  $('script-output').style.display = 'block';
+  $('script-loading').style.display = 'flex';
+  $('script-text').textContent = '';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-opus-4-6',
+        max_tokens: 1200,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+    const data = await resp.json();
+    $('script-loading').style.display = 'none';
+    if (data.content && data.content[0]) {
+      $('script-text').textContent = data.content[0].text;
+    } else {
+      $('script-text').textContent = 'Error generating script. Check your API key in Settings.';
+    }
+  } catch(e) {
+    $('script-loading').style.display = 'none';
+    $('script-text').textContent = 'Network error. Check your API key and internet connection.';
+  }
+}
+
+function copyScript() {
+  const text = $('script-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Script copied to clipboard.');
+  });
+}
+
+function clearScript() {
+  $('script-output').style.display = 'none';
+  $('script-text').textContent = '';
+}
+
+// ============================================================
+// DEAL HISTORY (NEW)
+// ============================================================
+function saveDeal() {
+  const arv = n('d-arv');
+  const addr = $('d-addr').value;
+  if (!arv || !addr) { alert('Enter address and ARV before saving.'); return; }
+
+  const mao = maoForARV(arv, n('d-repairs'), getMaoPct());
+  const scoreEl = $('score-num');
+  const score = parseInt(scoreEl.textContent) || 0;
+
+  const deal = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString(),
+    addr,
+    arv,
+    arvLow: n('d-arv-low') || arv * 0.92,
+    arvHigh: n('d-arv-high') || arv * 1.08,
+    repairs: n('d-repairs'),
+    ask: n('d-ask'),
+    mao,
+    score,
+    beds: $('d-beds').value,
+    baths: $('d-baths').value,
+    sqft: $('d-sqft').value,
+    type: $('d-type').value,
+    cond: $('d-cond').value,
+    distress: $('d-distress').value,
+    moi: $('d-moi').value,
+    notes: $('d-notes').value,
+    rent: n('d-rent'),
+    asis: n('d-asis')
+  };
+
+  const history = JSON.parse(localStorage.getItem('atticus_history') || '[]');
+  history.unshift(deal);
+  if (history.length > 50) history.pop();
+  localStorage.setItem('atticus_history', JSON.stringify(history));
+  loadHistory();
+  alert('Deal saved to history.');
+}
+
+function loadHistory() {
+  const history = JSON.parse(localStorage.getItem('atticus_history') || '[]');
+  const list = $('history-list');
+  const empty = $('history-empty');
+  if (!history.length) { if(empty) empty.style.display = 'block'; return; }
+  if(empty) empty.style.display = 'none';
+
+  const html = history.map(d => {
+    const scoreColor = d.score >= 7 ? 'var(--green)' : d.score >= 5 ? 'var(--yellow)' : 'var(--red)';
+    return `<div class="history-item" onclick="loadDeal(${d.id})">
+      <div>
+        <div class="history-item-addr">${d.addr}</div>
+        <div class="history-item-meta">${d.date} · ARV ${fmt(d.arv)} · MAO ${fmt(d.mao)} · ${d.type}</div>
+        <div class="history-item-meta">ARV Band: ${fmt(d.arvLow)} — ${fmt(d.arvHigh)}</div>
+      </div>
+      <div class="history-item-score" style="color:${scoreColor}">${d.score}/10</div>
+    </div>`;
+  }).join('');
+  list.innerHTML = html + `<div class="fs12 text3 mt8">${history.length} deal${history.length===1?'':'s'} saved.</div>`;
+}
+
+function loadDeal(id) {
+  const history = JSON.parse(localStorage.getItem('atticus_history') || '[]');
+  const d = history.find(x => x.id === id);
+  if (!d) return;
+  $('d-addr').value = d.addr;
+  $('d-arv').value = d.arv;
+  $('d-arv-low').value = d.arvLow || '';
+  $('d-arv-high').value = d.arvHigh || '';
+  $('d-repairs').value = d.repairs;
+  $('d-ask').value = d.ask;
+  $('d-beds').value = d.beds;
+  $('d-baths').value = d.baths;
+  $('d-sqft').value = d.sqft;
+  $('d-type').value = d.type;
+  $('d-cond').value = d.cond;
+  $('d-distress').value = d.distress;
+  $('d-moi').value = d.moi;
+  $('d-notes').value = d.notes || '';
+  $('d-rent').value = d.rent || '';
+  $('d-asis').value = d.asis || '';
+  showTab('analyzer');
+  document.querySelector('.nav-tab').click();
+  calcAll();
+}
+
+function clearHistory() {
+  if (!confirm('Clear all saved deals?')) return;
+  localStorage.removeItem('atticus_history');
+  $('history-list').innerHTML = '<div class="fs13 text3" id="history-empty">No saved deals yet. Run a deal and click "Save Deal."</div>';
+}
+
+// ============================================================
+// EXPORT / PRINT
+// ============================================================
+function exportDeal() {
+  const arv = n('d-arv');
+  const mao = maoForARV(arv, n('d-repairs'), getMaoPct());
+  const s = S();
+  const lines = [
+    '═══════════════════════════════════',
+    '   ATTICUS HOME SOLUTIONS',
+    '   DEAL ANALYSIS REPORT',
+    '═══════════════════════════════════',
+    `Address:   ${$('d-addr').value || '—'}`,
+    `Date:      ${new Date().toLocaleDateString()}`,
+    `Score:     ${$('score-num').textContent}/10`,
+    '',
+    '─ ARV CONFIDENCE BAND ──────────────',
+    `Low ARV:   ${fmt(n('d-arv-low') || arv * 0.92)}`,
+    `Mid ARV:   ${fmt(arv)}`,
+    `High ARV:  ${fmt(n('d-arv-high') || arv * 1.08)}`,
+    '',
+    '─ DEAL INPUTS ──────────────────────',
+    `ARV (Mid): ${fmt(arv)}`,
+    `Repairs:   ${fmt(n('d-repairs'))}`,
+    `As-Is:     ${fmt(n('d-asis'))}`,
+    `Seller Ask:${fmt(n('d-ask'))}`,
+    `MOI Tier:  ${$('d-moi').value}`,
+    '',
+    '─ WHOLESALE ────────────────────────',
+    `Your MAO:  ${fmt(mao)}`,
+    `Assign Fee:${fmt(s.minFee)}`,
+    `End Buyer: ${fmt(mao + s.minFee)}`,
+    '',
+    '─ NOVATION ─────────────────────────',
+    `MSP:       ${fmt(arv * 0.9 - s.novMin - n('d-repairs'))}`,
+    '',
+    '─ SELLER NOTES ─────────────────────',
+    $('d-notes').value || 'None',
+    '',
+    '═══════════════════════════════════',
+    '   atticushomesolutions.com',
+    '═══════════════════════════════════'
+  ].join('\n');
+
+  const ta = document.createElement('textarea');
+  ta.value = lines;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  alert('Deal summary copied to clipboard.');
+}
+
+function printDeal() { window.print(); }
+
+// ============================================================
+// CREATIVE FINANCE CALCS
+// ============================================================
+function calcSub2() {
+  const bal = n('s2-bal'), rate = n('s2-rate'), term = n('s2-term'), ti = n('s2-ti');
+  const cash = n('s2-cash'), back = n('s2-back'), close = n('s2-close'), rent = n('s2-rent');
+  const s = S();
+
+  const r = rate / 100 / 12;
+  const pi = term > 0 ? bal * (r * Math.pow(1+r,term)) / (Math.pow(1+r,term)-1) : 0;
+  const piti = pi + ti;
+  const entry = cash + back + close;
+  const cf = rent - piti;
+  const coc = entry > 0 ? (cf * 12 / entry * 100) : null;
+  const equity = n('d-arv') > 0 ? n('d-arv') - bal : null;
+  const rateOk = rate < s.s2Rate ? '✅ YES' : '❌ NO';
+
+  $('s2-entry').textContent = fmt(entry);
+  $('s2-piti').textContent = fmt(piti);
+  $('s2-cf').textContent = fmt(cf);
+  $('s2-cf').className = 'stat-val ' + (cf >= 200 ? 'green' : cf >= 0 ? 'yellow' : 'red');
+  $('s2-coc').textContent = coc !== null ? fmtPct(coc) : '—';
+  $('s2-coc').className = 'stat-val ' + (coc === null ? '' : coc >= s.s2CoC ? 'green' : 'red');
+  $('s2-equity').textContent = equity !== null ? fmt(equity) : '—';
+  $('s2-rate-ok').textContent = rateOk;
+  $('s2-rate-ok').className = 'stat-val ' + (rateOk.includes('YES') ? 'green' : 'red');
+
+  // Go/No-Go
+  const go = entry <= s.s2Entry && rate < s.s2Rate && coc !== null && coc >= s.s2CoC;
+  const v = $('s2-verdict');
+  v.style.display = 'block';
+  v.className = 'rec-box ' + (go ? 'green' : 'red');
+  v.innerHTML = `<div class="rec-box-title">${go ? '✅ Sub-To GO' : '❌ Sub-To NO-GO'}</div><p>${go ? 'All thresholds met. Proceed with due diligence.' : `Failed: ${entry > s.s2Entry ? 'Entry fee exceeds max. ' : ''}${rate >= s.s2Rate ? 'Existing rate too high. ' : ''}${coc !== null && coc < s.s2CoC ? 'CoC below minimum.' : ''}`}</p>`;
+}
+
+function calcSF() {
+  const price = n('sf-price'), down = n('sf-down'), rate = n('sf-rate');
+  const amort = n('sf-amort'), balloon = n('sf-balloon'), ti = n('sf-ti'), rent = n('sf-rent');
+  const loanAmt = price - down;
+  const r = rate / 100 / 12;
+  const nmo = amort * 12;
+  const pi = loanAmt > 0 && r > 0 ? loanAmt * (r * Math.pow(1+r,nmo)) / (Math.pow(1+r,nmo)-1) : 0;
+  const piti = pi + ti;
+  const cf = rent - piti;
+  const coc = down > 0 ? (cf * 12 / down * 100) : null;
+
+  // Balloon balance
+  let ballBal = loanAmt;
+  if (balloon > 0) {
+    const bMo = balloon * 12;
+    for (let i = 0; i < bMo; i++) { ballBal = ballBal * (1 + r) - pi; }
+  }
+
+  // Seller total return: down + pi*total_payments
+  const totalPmts = balloon > 0 ? balloon * 12 : amort * 12;
+  const sellerReturn = down + pi * totalPmts;
+
+  $('sf-pi').textContent = fmt(pi);
+  $('sf-piti').textContent = fmt(piti);
+  $('sf-cf').textContent = fmt(cf);
+  $('sf-cf').className = 'stat-val ' + (cf >= 200 ? 'green' : cf >= 0 ? 'yellow' : 'red');
+  $('sf-coc').textContent = coc !== null ? fmtPct(coc) : '—';
+  $('sf-ball-bal').textContent = balloon > 0 ? fmt(ballBal) : 'No Balloon';
+  $('sf-ret').textContent = fmt(sellerReturn);
+}
+
+function calcLO() {
+  const price = n('lo-price'), fee = n('lo-fee'), lease = n('lo-lease');
+  const rent = n('lo-rent'), tfee = n('lo-tfee'), term = n('lo-term'), tprice = n('lo-tprice');
+  const spread = rent - lease;
+  const totalSpread = spread * term;
+  const backend = tprice - price;
+  const totalProfit = totalSpread + backend + tfee - fee;
+  const noExercise = totalSpread + tfee - fee;
+  const feeNet = tfee - fee;
+
+  $('lo-spread').textContent = fmt(spread);
+  $('lo-spread').className = 'stat-val ' + (spread >= 0 ? 'green' : 'red');
+  $('lo-total').textContent = fmt(totalSpread);
+  $('lo-backend').textContent = fmt(backend);
+  $('lo-profit').textContent = fmt(totalProfit);
+  $('lo-noex').textContent = fmt(noExercise);
+  $('lo-feenet').textContent = fmt(feeNet);
+}
+
+function calcWrap() {
+  const ubal = n('wr-ubal'), urate = n('wr-urate'), upi = n('wr-upi'), uti = n('wr-uti');
+  const price = n('wr-price'), down = n('wr-down'), rate = n('wr-rate'), term = n('wr-term');
+  const loanAmt = price - down;
+  const r = rate / 100 / 12;
+  const nmo = term * 12;
+  const buyerPI = loanAmt > 0 && r > 0 ? loanAmt * (r * Math.pow(1+r,nmo)) / (Math.pow(1+r,nmo)-1) : 0;
+  const spread = buyerPI - upi;
+  const annual = spread * 12;
+  const equity = price - ubal;
+  const buyerEq = down;
+  const rateSpread = rate - urate;
+
+  $('wr-buyer-pmt').textContent = fmt(buyerPI);
+  $('wr-spread').textContent = fmt(spread);
+  $('wr-spread').className = 'stat-val ' + (spread >= 0 ? 'green' : 'red');
+  $('wr-annual').textContent = fmt(annual);
+  $('wr-equity').textContent = fmt(equity);
+  $('wr-buyer-eq').textContent = fmt(buyerEq);
+  $('wr-rate-spread').textContent = fmtPct(rateSpread);
+}
+
+// ============================================================
+// PIPELINE STACKER
+// ============================================================
+let pipelineDeals = [];
+let pipelineId = 0;
+
+function initPipeline() {
+  if (!pipelineDeals.length) {
+    addPipelineDeal();
+    addPipelineDeal();
+  }
+}
+
+function addPipelineDeal() {
+  pipelineId++;
+  const id = pipelineId;
+  pipelineDeals.push(id);
+  const div = document.createElement('div');
+  div.className = 'pipeline-deal';
+  div.id = 'pd-' + id;
+  div.innerHTML = `
+    <div class="pipeline-deal-header">
+      <input type="text" placeholder="Address" style="flex:2;min-width:160px" id="pd-addr-${id}">
+      <select id="pd-status-${id}" style="flex:1;min-width:120px">
+        <option>New Lead</option><option>In Contact</option><option>Offer Made</option>
+        <option>Under Contract</option><option>Stale</option>
+      </select>
+      <select id="pd-exit-${id}" style="flex:1;min-width:110px">
+        <option>Wholesale</option><option>Novation</option><option>Wholetail</option>
+        <option>Sub-To</option><option>Seller Finance</option><option>Flip</option>
+      </select>
+      <input type="number" id="pd-spread-${id}" placeholder="Spread $" style="flex:1;min-width:100px">
+      <input type="number" id="pd-arv-${id}" placeholder="ARV $" style="flex:1;min-width:100px">
+      <input type="number" id="pd-days-${id}" placeholder="Days in pipe" style="flex:0.8;min-width:80px">
+      <button class="del-row" onclick="removePipelineDeal(${id})">✕</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="pd-notes-${id}" placeholder="Notes (motivation, condition, blockers...)" style="flex:1">
+    </div>`;
+  $('pipeline-input-area').appendChild(div);
+}
+
+function removePipelineDeal(id) {
+  pipelineDeals = pipelineDeals.filter(x => x !== id);
+  const el = $('pd-' + id);
+  if (el) el.remove();
+}
+
+function runSTACK() {
+  const scored = pipelineDeals.map(id => {
+    const addr = ($('pd-addr-' + id) || {}).value || 'Unknown';
+    const status = ($('pd-status-' + id) || {}).value || 'New Lead';
+    const exit = ($('pd-exit-' + id) || {}).value || 'Wholesale';
+    const spread = parseFloat(($('pd-spread-' + id) || {}).value) || 0;
+    const arv = parseFloat(($('pd-arv-' + id) || {}).value) || 0;
+    const days = parseFloat(($('pd-days-' + id) || {}).value) || 0;
+    const notes = ($('pd-notes-' + id) || {}).value || '';
+
+    // S: Spread (0–5)
+    const spreadScore = spread >= 25000 ? 5 : spread >= 15000 ? 4 : spread >= 10000 ? 3 : spread >= 5000 ? 2 : spread > 0 ? 1 : 0;
+    // T: Temperature/status (0–5)
+    const tempScore = status === 'Under Contract' ? 5 : status === 'Offer Made' ? 4 : status === 'In Contact' ? 3 : status === 'New Lead' ? 2 : 0;
+    // A: Ability (exit viability 0–5)
+    const abilScore = exit === 'Wholesale' ? 5 : exit === 'Novation' ? 4 : exit === 'Sub-To' ? 4 : exit === 'Wholetail' ? 3 : exit === 'Seller Finance' ? 3 : 2;
+    // C: Clock (0–5, fresher = better)
+    const clockScore = days <= 7 ? 5 : days <= 14 ? 4 : days <= 30 ? 3 : days <= 60 ? 2 : days <= 90 ? 1 : 0;
+    // K: Kick / notes signal (0–5)
+    const notesLower = notes.toLowerCase();
+    let kickScore = 0;
+    if (notesLower.includes('motivated') || notesLower.includes('urgent') || notesLower.includes('fast')) kickScore += 2;
+    if (notesLower.includes('vacant') || notesLower.includes('code') || notesLower.includes('foreclosure')) kickScore += 1;
+    if (notesLower.includes('flexible') || notesLower.includes('willing')) kickScore += 1;
+    if (arv > 0 && spread / arv > 0.3) kickScore += 1;
+    kickScore = Math.min(5, kickScore);
+
+    const total = spreadScore + tempScore + abilScore + clockScore + kickScore;
+
+    // Next action
+    let action = '';
+    if (status === 'Under Contract') action = 'Push to title — confirm buyer deposit and close date.';
+    else if (status === 'Offer Made') action = 'Follow up: call seller within 24 hrs.';
+    else if (status === 'In Contact') action = 'Make the offer. Run comp calc first.';
+    else if (status === 'New Lead') action = 'Make first call. Use AI Seller Script for opener.';
+    else action = 'Re-engage or remove from pipeline.';
+
+    return { id, addr, status, exit, spread, arv, days, notes, spreadScore, tempScore, abilScore, clockScore, kickScore, total, action };
+  }).sort((a,b) => b.total - a.total);
+
+  const hot = scored.filter(x => x.total >= 18).length;
+  const active = scored.filter(x => x.total >= 12 && x.total < 18).length;
+  const avg = scored.length ? Math.round(scored.reduce((s,x) => s+x.total, 0) / scored.length) : 0;
+
+  $('ph-total').textContent = scored.length;
+  $('ph-hot').textContent = hot;
+  $('ph-active').textContent = active;
+  $('ph-avg').textContent = avg + '/25';
+
+  const html = scored.map((d, i) => {
+    const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+    const dims = [
+      ['S·Spread', d.spreadScore],['T·Temp', d.tempScore],['A·Ability', d.abilScore],
+      ['C·Clock', d.clockScore],['K·Kick', d.kickScore]
+    ];
+    return `<div class="pipeline-deal ${rankClass}">
+      <div class="pipeline-deal-header">
+        <div style="flex:1"><strong>${i+1}. ${d.addr}</strong> <span class="badge badge-gray">${d.exit}</span></div>
+        <div class="mono bold" style="font-size:22px;color:${d.total>=18?'var(--green)':d.total>=12?'var(--yellow)':'var(--text2)'}">${d.total}<span style="font-size:13px;color:var(--text3)">/25</span></div>
+      </div>
+      <div class="stack-bars">
+        ${dims.map(([label, val]) => `<div class="stack-bar-item">
+          <div class="stack-bar-label">${label}: ${val}/5</div>
+          <div class="stack-bar-bg"><div class="stack-bar-fill" style="width:${val/5*100}%;background:${val>=4?'var(--green)':val>=2?'var(--yellow)':'var(--red)'}"></div></div>
+        </div>`).join('')}
+      </div>
+      ${i < 3 ? `<div class="fs12 mt8" style="color:var(--accent)">▶ ${d.action}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  $('stack-ranked-list').innerHTML = html;
+  $('stack-results').style.display = 'block';
+}
+
+// ============================================================
+// REHAB ESTIMATOR
+// ============================================================
+let rehabTier = 'cosmetic';
+const rehabRates = {
+  cosmetic: { low: 10, mid: 14, high: 18 },
+  light:    { low: 19, mid: 23, high: 28 },
+  medium:   { low: 29, mid: 37, high: 45 },
+  heavy:    { low: 46, mid: 58, high: 70 },
+  gut:      { low: 71, mid: 95, high: 120 }
+};
+const big6Costs = {
+  'big-roof':       { low: 8000, mid: 12000, high: 18000 },
+  'big-hvac':       { low: 5000, mid: 8000,  high: 12000 },
+  'big-electric':   { low: 8000, mid: 12000, high: 18000 },
+  'big-plumb':      { low: 6000, mid: 10000, high: 15000 },
+  'big-foundation': { low: 10000, mid: 20000, high: 40000 },
+  'big-windows':    { low: 6000, mid: 10000, high: 16000 }
+};
+
+function setRehabTier(tier, el) {
+  rehabTier = tier;
+  document.querySelectorAll('.rehab-tier-seg').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  calcRehab();
+}
+
+function calcRehab() {
+  const sqft = n('rh-sqft');
+  const labor = parseFloat($('rh-labor').value) || 1;
+  if (!sqft) return;
+  const rates = rehabRates[rehabTier];
+  let b6Low = 0, b6Mid = 0, b6High = 0;
+  for (const id in big6Costs) {
+    if ($(id) && $(id).checked) {
+      b6Low += big6Costs[id].low;
+      b6Mid += big6Costs[id].mid;
+      b6High += big6Costs[id].high;
+    }
+  }
+  const baseLow = sqft * rates.low * labor;
+  const baseMid = sqft * rates.mid * labor;
+  const baseHigh = sqft * rates.high * labor;
+  $('rh-low').textContent = fmt(baseLow + b6Low);
+  $('rh-mid').textContent = fmt(baseMid + b6Mid);
+  $('rh-high').textContent = fmt(baseHigh + b6High);
+  $('rh-base').textContent = fmt(baseMid);
+  $('rh-big6').textContent = fmt(b6Mid);
+  $('rh-total').textContent = fmt(baseMid + b6Mid);
+  $('rh-persqft').textContent = sqft > 0 ? '$' + ((baseMid + b6Mid) / sqft).toFixed(0) + '/sqft' : '—';
+}
+
+// ============================================================
+// MOI CALCULATOR
+// ============================================================
+function calcMOI() {
+  const active = n('mkt-active');
+  const sales = n('mkt-sales');
+  if (!active || !sales) return;
+  const moi = active / sales;
+  $('moi-result').textContent = moi.toFixed(1);
+  ['hot','warm','cool'].forEach(t => $('moi-row-' + t).classList.remove('active-moi'));
+  let tier, badge;
+  if (moi < 1) { tier = 'hot'; badge = '🔥 Hot Market — 90% MAO'; }
+  else if (moi <= 3) { tier = 'warm'; badge = 'Warm Market — 80% MAO'; }
+  else { tier = 'cool'; badge = '❄️ Cool Market — 70% MAO'; }
+  $('moi-row-' + tier).classList.add('active-moi');
+  $('moi-tier-badge').textContent = badge;
+}
+
+// ============================================================
+// COMP CALCULATOR
+// ============================================================
+let compId = 0;
+
+function addCompRow() {
+  compId++;
+  const id = compId;
+  const tbody = $('comp-tbody');
+  const tr = document.createElement('tr');
+  tr.id = 'comp-row-' + id;
+  tr.innerHTML = `
+    <td><input type="text" id="c-addr-${id}" placeholder="123 Elm St" style="width:140px"></td>
+    <td><input type="number" id="c-price-${id}" placeholder="210000" oninput="calcComps()"></td>
+    <td><input type="number" id="c-sqft-${id}" placeholder="1450" oninput="calcComps()"></td>
+    <td><input type="number" id="c-beds-${id}" placeholder="0" oninput="calcComps()"></td>
+    <td><input type="number" id="c-baths-${id}" placeholder="0" oninput="calcComps()"></td>
+    <td><input type="number" id="c-sqftadj-${id}" placeholder="0" oninput="calcComps()"></td>
+    <td><input type="number" id="c-pool-${id}" placeholder="0" oninput="calcComps()"></td>
+    <td><input type="number" id="c-gar-${id}" placeholder="0" oninput="calcComps()"></td>
+    <td class="mono bold" id="c-adj-${id}" style="color:var(--accent)">—</td>
+    <td><button class="del-row" onclick="removeCompRow(${id})">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+
+function removeCompRow(id) {
+  const el = $('comp-row-' + id);
+  if (el) el.remove();
+  calcComps();
+}
+
+function calcComps() {
+  const s = S();
+  const rows = document.querySelectorAll('#comp-tbody tr');
+  const adjPrices = [];
+  rows.forEach(tr => {
+    const id = tr.id.replace('comp-row-', '');
+    const price = parseFloat($('c-price-' + id).value) || 0;
+    const beds = parseFloat($('c-beds-' + id).value) || 0;
+    const baths = parseFloat($('c-baths-' + id).value) || 0;
+    const sqftadj = parseFloat($('c-sqftadj-' + id).value) || 0;
+    const pool = parseFloat($('c-pool-' + id).value) || 0;
+    const gar = parseFloat($('c-gar-' + id).value) || 0;
+    if (!price) { $('c-adj-' + id).textContent = '—'; return; }
+    const adj = price + beds * s.adjBed + baths * s.adjBath + sqftadj * s.adjSqft + pool * s.adjPool + gar * s.adjGar;
+    $('c-adj-' + id).textContent = fmt(adj);
+    adjPrices.push(adj);
+  });
+
+  if (adjPrices.length >= 2) {
+    const sorted = [...adjPrices].sort((a,b) => a-b);
+    const avg = adjPrices.reduce((s,x) => s+x, 0) / adjPrices.length;
+    $('comp-low').textContent = fmt(sorted[0]);
+    $('comp-avg').textContent = fmt(avg);
+    $('comp-high').textContent = fmt(sorted[sorted.length-1]);
+    $('comp-results').style.display = 'block';
+    window._compAvg = avg;
+  }
+}
+
+function pushARVtoDeal() {
+  if (window._compAvg) {
+    $('d-arv').value = Math.round(window._compAvg);
+    calcAll();
+    alert('ARV pushed to Deal Analyzer as Mid ARV. Consider setting Low/High band manually.');
+  }
+}
+
+// ============================================================
+// SETTINGS PERSISTENCE
+// ============================================================
+function saveSettings() {
+  const keys = ['s-mao-hot','s-mao-warm','s-mao-cool','s-min-fee','s-sell-pct','s-hold-mo',
+    's-hml-rate','s-exp-ratio','s-ltv','s-loan-rate','s-nov-min','s-wt-min',
+    's-s2-entry','s-s2-rate','s-s2-coc','s-s2-cap','s-adj-bed','s-adj-bath',
+    's-adj-pool','s-adj-gar','s-adj-cp','s-adj-sqft','s-api-key'];
+  const obj = {};
+  keys.forEach(k => { obj[k] = $(k) ? $(k).value : ''; });
+  localStorage.setItem('atticus_settings', JSON.stringify(obj));
+  calcAll();
+}
+
+function loadSettings() {
+  const raw = localStorage.getItem('atticus_settings');
+  if (!raw) return;
+  try {
+    const obj = JSON.parse(raw);
+    for (const k in obj) { if ($(k)) $(k).value = obj[k]; }
+  } catch(e) {}
+}
+</script>
+</body>
+</html>
