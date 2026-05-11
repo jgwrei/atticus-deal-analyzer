@@ -1072,7 +1072,7 @@
           <div class="mb16">
             <label>Market / Zip</label>
             <div class="flex gap8">
-              <input type="text" id="mkt-label" placeholder="Norfolk VA 23502" style="flex:1">
+              <input type="text" id="mkt-label" placeholder="38111 (zip code)" style="flex:1">
               <button class="btn btn-primary btn-small" onclick="fetchMarketData()" title="Pull live MOI data from Rentcast">🔍 Pull Data</button>
             </div>
             <div id="mkt-fetch-status" class="fs12 mt8" style="color:var(--text3)"></div>
@@ -2457,58 +2457,55 @@ async function fetchMarketData() {
   }
 
   const marketInput = $('mkt-label').value.trim();
-  if (!marketInput) { alert('Enter a city, state or zip code first.'); return; }
+  if (!marketInput) { alert('Enter a 5-digit zip code (e.g. 38111).'); return; }
 
   const fetchStatus = $('mkt-fetch-status');
-  fetchStatus.textContent = 'Fetching market data...';
-  fetchStatus.style.color = 'var(--text3)';
 
-  // Parse zip vs city/state
+  // Rentcast /markets endpoint requires a zip code
   const zipMatch = marketInput.match(/\b(\d{5})\b/);
-  const params = new URLSearchParams({ dataType: 'All', historyRange: 1 });
-  if (zipMatch) {
-    params.append('zipCode', zipMatch[1]);
-  } else {
-    // Try to split "City, ST" or "City ST"
-    const parts = marketInput.split(/,\s*|\s+(?=[A-Z]{2}$)/);
-    if (parts.length >= 2) {
-      params.append('city', parts[0].trim());
-      params.append('state', parts[parts.length - 1].trim());
-    } else {
-      params.append('city', marketInput);
-    }
+  if (!zipMatch) {
+    fetchStatus.textContent = 'Please enter a 5-digit zip code (e.g. 38111) — Rentcast market data requires a zip.';
+    fetchStatus.style.color = 'var(--yellow)';
+    return;
   }
 
+  const zip = zipMatch[1];
+  fetchStatus.textContent = 'Fetching market data for ' + zip + '...';
+  fetchStatus.style.color = 'var(--text3)';
+
   try {
-    const resp = await fetch('https://api.rentcast.io/v1/markets?' + params.toString(), {
+    const resp = await fetch('https://api.rentcast.io/v1/markets?zipCode=' + zip, {
       headers: { 'X-Api-Key': key, 'Accept': 'application/json' }
     });
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      fetchStatus.textContent = 'Error: ' + (err.message || resp.statusText);
+      fetchStatus.textContent = 'Error ' + resp.status + ': ' + (err.message || resp.statusText);
       fetchStatus.style.color = 'var(--red)';
       return;
     }
 
     const data = await resp.json();
 
-    // Rentcast returns saleData with activeListings and monthlySales
+    // Correct Rentcast field names from their docs
     const sale = data.saleData || {};
-    const active = sale.activeListings || null;
-    const sold   = sale.monthlySales  || null;
-    const medianPrice = sale.medianPrice || null;
-    const avgDom = sale.averageDaysOnMarket || null;
+    const activeListings   = sale.activeListings   ?? null;
+    const newListings      = sale.newListings       ?? null;
+    const medianPrice      = sale.medianPrice       ?? null;
+    const avgDom           = sale.averageDaysOnMarket ?? null;
 
+    // Estimate monthly sales from newListings (closest Rentcast provides at zip level)
+    // activeListings / newListings ratio approximates absorption
     let filled = [];
 
-    if (active !== null) {
-      $('mkt-active').value = active;
-      filled.push('active listings: ' + active);
+    if (activeListings !== null) {
+      $('mkt-active').value = activeListings;
+      filled.push('active listings: ' + activeListings);
     }
-    if (sold !== null) {
-      $('mkt-sales').value = sold;
-      filled.push('monthly sales: ' + sold);
+    if (newListings !== null) {
+      // Use newListings as proxy for monthly sales (sold ≈ new in equilibrium)
+      $('mkt-sales').value = newListings;
+      filled.push('monthly sales (est): ' + newListings);
       calcMOI();
     }
     if (medianPrice !== null) {
@@ -2519,14 +2516,14 @@ async function fetchMarketData() {
     }
 
     if (filled.length > 0) {
-      fetchStatus.textContent = '✓ Rentcast pulled: ' + filled.join(', ');
+      fetchStatus.textContent = '✓ Rentcast data pulled for zip ' + zip + ': ' + filled.join(', ');
       fetchStatus.style.color = 'var(--green)';
     } else {
-      fetchStatus.textContent = 'No market data found for this location';
+      fetchStatus.textContent = 'Rentcast returned no sale data for zip ' + zip + '. Try an adjacent zip.';
       fetchStatus.style.color = 'var(--yellow)';
     }
   } catch(e) {
-    fetchStatus.textContent = 'Network error — check API key';
+    fetchStatus.textContent = 'Network error: ' + e.message;
     fetchStatus.style.color = 'var(--red)';
   }
 }
