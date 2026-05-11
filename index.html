@@ -205,6 +205,25 @@
     appearance: none;
   }
   input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+  /* Placeholder text — clearly lighter so entered data stands out */
+  input::placeholder, textarea::placeholder {
+    color: var(--text3);
+    opacity: 0.6;
+    font-style: italic;
+  }
+  /* Webkit browsers */
+  input::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
+    color: var(--text3);
+    opacity: 0.6;
+    font-style: italic;
+  }
+  /* Firefox */
+  input::-moz-placeholder, textarea::-moz-placeholder {
+    color: var(--text3);
+    opacity: 0.6;
+    font-style: italic;
+  }
   textarea { resize: vertical; min-height: 80px; }
   select { cursor: pointer; }
 
@@ -2291,6 +2310,19 @@ function calcMOI() {
   $('moi-tier-badge').textContent = badge;
 }
 
+function syncMOIToDealAnalyzer() {
+  const active = parseFloat($('mkt-active').value) || 0;
+  const sales  = parseFloat($('mkt-sales').value)  || 0;
+  if (!active || !sales) return;
+  const moi = active / sales;
+  const sel = $('d-moi');
+  if (!sel) return;
+  if (moi < 1)       sel.value = 'hot';
+  else if (moi <= 3) sel.value = 'warm';
+  else               sel.value = 'cool';
+  calcAll();
+}
+
 // ============================================================
 // COMP CALCULATOR
 // ============================================================
@@ -2503,10 +2535,8 @@ async function fetchMarketData() {
       filled.push('active listings: ' + activeListings);
     }
     if (newListings !== null) {
-      // Use newListings as proxy for monthly sales (sold ≈ new in equilibrium)
       $('mkt-sales').value = newListings;
       filled.push('monthly sales (est): ' + newListings);
-      calcMOI();
     }
     if (medianPrice !== null) {
       $('mkt-median').value = Math.round(medianPrice);
@@ -2516,6 +2546,8 @@ async function fetchMarketData() {
     }
 
     if (filled.length > 0) {
+      calcMOI();
+      syncMOIToDealAnalyzer();
       fetchStatus.textContent = '✓ Rentcast data pulled for zip ' + zip + ': ' + filled.join(', ');
       fetchStatus.style.color = 'var(--green)';
     } else {
